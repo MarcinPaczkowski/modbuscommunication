@@ -30,7 +30,7 @@ namespace ModbusCommunication
             ReloadAvaiableSerialPorts();
         }
 
-        #region GroupBoxConnectionToSerialPort
+        #region ConnectionToSerialPortGroupBox
         private void uxReloadAvailableSerialPorts_Click(object sender, EventArgs e)
         {
             ReloadAvaiableSerialPorts();
@@ -58,6 +58,7 @@ namespace ModbusCommunication
                     _serialPortService.ConnectToSerialPort(uxAvailableSerialPorts.SelectedItem.ToString());
                     uxConnectionTest.Text = String.Empty;
                     uxConnectionTest.Text = String.Format("Połączenie z portem {0}", uxAvailableSerialPorts.SelectedItem.ToString());
+                    uxConsoleLog.Nodes.Add(String.Format("Połączenie z portem {0}", uxAvailableSerialPorts.SelectedItem.ToString()));
                     uxConnectionTest.ForeColor = Color.Green;
                     uxComConnect.Enabled = false;
                     uxComDisconnect.Enabled = true;
@@ -67,7 +68,7 @@ namespace ModbusCommunication
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Błąd", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                uxConsoleLog.Nodes.Add(ex.Message);
             }
         }
 
@@ -77,8 +78,16 @@ namespace ModbusCommunication
             uxConnectionTest.Text = String.Empty;
             uxConnectionTest.Text = "Brak połączenie z portem COM";
             uxConnectionTest.ForeColor = Color.Red;
+            uxConsoleLog.Nodes.Add("Rozłączenie z portem COM");
             uxComConnect.Enabled = true;
             uxComDisconnect.Enabled = false;
+        }
+        #endregion
+
+        #region ConsoleLogGroupBox
+        private void uxRefreshConsole_Click(object sender, EventArgs e)
+        {
+            uxConsoleLog.Nodes.Clear();
         }
         #endregion
     }
