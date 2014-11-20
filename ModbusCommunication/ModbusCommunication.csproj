@@ -82,6 +82,12 @@
     <Folder Include="Models\" />
     <Folder Include="Repositories\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ModbusExtension\ModbusExtension.csproj">
+      <Project>{979f932c-3961-4598-9a34-906775dd02af}</Project>
+      <Name>ModbusExtension</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

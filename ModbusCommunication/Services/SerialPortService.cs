@@ -9,20 +9,20 @@ namespace ModbusCommunication.Services
 {
     internal class SerialPortService
     {
-        SerialPort _serialPort;
+        internal SerialPort SerialPort { get; set; }
 
         internal SerialPortService()
         {
-            _serialPort = new SerialPort();
+            SerialPort = new SerialPort();
             InitializeSerialPort();
         }
 
         private void InitializeSerialPort()
         {
-            _serialPort.BaudRate = 19200;
-            _serialPort.DataBits = 8;
-            _serialPort.Parity = Parity.None;
-            _serialPort.StopBits = StopBits.One;
+            SerialPort.BaudRate = 19200;
+            SerialPort.DataBits = 8;
+            SerialPort.Parity = Parity.None;
+            SerialPort.StopBits = StopBits.One;
         }
 
         internal string[] GetAvailableSerialPorts()
@@ -32,14 +32,14 @@ namespace ModbusCommunication.Services
 
         internal void ConnectToSerialPort(string serialPortName)
         {
-            _serialPort.Close();
-            _serialPort.PortName = serialPortName;
-            _serialPort.Open();
+            SerialPort.Close();
+            SerialPort.PortName = serialPortName;
+            SerialPort.Open();
         }
 
         internal void DisconnectSerialPort()
         {
-            _serialPort.Close();
+            SerialPort.Close();
         }
     }
 }
