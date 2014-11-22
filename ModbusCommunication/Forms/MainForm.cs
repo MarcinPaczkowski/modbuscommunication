@@ -17,6 +17,7 @@ namespace ModbusCommunication
     {
         SerialPortService _serialPortService;
         ModbusService _modbusService;
+
         public MainForm()
         {
             InitializeComponent();
@@ -95,15 +96,14 @@ namespace ModbusCommunication
         {
             try
             {
-                _modbusService.InitializeModbus(new ModbusConfiguration
+                _modbusService.InitializeModbusRtu(new ModbusConfiguration
                 {
                     SerialPort = _serialPortService.SerialPort,
                     TimeOut = 300
                 });
                 _modbusService.TestConnection(new Slave
                 {
-                    Address = 1,
-                    StartAddress = 0
+                    SlaveId = 1
                 });
                 uxConnectionGatewayTest.Text = String.Empty;
                 uxConnectionGatewayTest.Text = String.Format("Połączenie z gateway OK");
@@ -132,8 +132,7 @@ namespace ModbusCommunication
         {
             var registers = _modbusService.GetAllRegisterForSelectedDevice(new Slave
             {
-                Address = 1,
-                StartAddress = 0,
+                SlaveId = 1,
             });
             var logBuilder = new StringBuilder();
             foreach (var register in registers)
@@ -149,8 +148,7 @@ namespace ModbusCommunication
             {
                 var activityStatusOfDevices = _modbusService.GetActivityStatusOfDevices(new Slave
                 {
-                    Address = 1,
-                    StartAddress = 0,
+                    SlaveId = 1,
                 });
 
                 foreach (var device in activityStatusOfDevices)
@@ -169,8 +167,7 @@ namespace ModbusCommunication
         {
             var fieldValue = _modbusService.GetElectromagneticFieldValue(new Slave
             {
-                Address = 1,
-                StartAddress = 0,
+                SlaveId = 1,
                 DeviceNumber = 11
             });
             uxConsoleLog.Nodes.Add(fieldValue.ToString());

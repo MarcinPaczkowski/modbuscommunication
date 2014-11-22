@@ -54,6 +54,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums\BaselineFilter.cs" />
+    <Compile Include="Enums\LowPassFilter.cs" />
+    <Compile Include="Enums\ReportRate.cs" />
+    <Compile Include="Enums\SampleCounter.cs" />
+    <Compile Include="Enums\SampleRate.cs" />
+    <Compile Include="Enums\TresholdAndHysteresis.cs" />
+    <Compile Include="Models\ConfigurationMessage.cs" />
     <Compile Include="Models\ModbusConfiguration.cs" />
     <Compile Include="Models\Slave.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
