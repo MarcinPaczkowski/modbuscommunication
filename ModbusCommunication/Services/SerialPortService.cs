@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ModbusCommunication.Services
+namespace ModbusSensorOperation.Services
 {
     internal class SerialPortService
     {
@@ -25,9 +22,9 @@ namespace ModbusCommunication.Services
             SerialPort.StopBits = StopBits.One;
         }
 
-        internal string[] GetAvailableSerialPorts()
+        internal List<string> GetAvailableSerialPorts()
         {
-            return SerialPort.GetPortNames();
+            return SerialPort.GetPortNames().ToList();
         }
 
         internal void ConnectToSerialPort(string serialPortName)

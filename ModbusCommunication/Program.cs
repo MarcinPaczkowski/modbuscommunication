@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using ModbusCommunication.Forms;
+using ModbusSensorOperation.Repositories;
+using ModbusSensorOperation.Utils;
 
-namespace ModbusCommunication
+namespace ModbusSensorOperation
 {
     static class Program
     {
@@ -16,7 +16,19 @@ namespace ModbusCommunication
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            try
+            {
+                var testConnectionRepository = new TestConnectionRepository();
+                Configuration.Instance.LoadConfiguration("configuration.xml");
+                if(testConnectionRepository.TestConnectionToDatabase())
+                    Application.Run(new MainForm());
+                else
+                    throw new Exception("Nie można połączyć się z bazą danych.");
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(text: ex.Message, caption: @"Błąd programu", buttons: MessageBoxButtons.OK, icon: MessageBoxIcon.Error);
+            }
         }
     }
 }
