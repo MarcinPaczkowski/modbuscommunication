@@ -1,11 +1,7 @@
 ﻿using Modbus.Device;
 using ModbusExtension.Models;
-using System;
 using System.Collections.Generic;
-using System.IO.Ports;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ModbusExtension.Services
 {    
@@ -55,7 +51,7 @@ namespace ModbusExtension.Services
             foreach (var register in registers)
             {
                 var mask = 1;
-                for (int i = 0; i < 16; i++)
+                for (var i = 0; i < 16; i++)
                 {
                     var isActive = (register & mask) == mask;
                     deviceStatusDictionary.Add(deviceCounter, isActive);
@@ -71,7 +67,14 @@ namespace ModbusExtension.Services
             var startAddress = GetStartAddress(slave.DeviceNumber, 7);
             var register = _modbusSerial.ReadHoldingRegisters(slave.SlaveId, startAddress, 1).First();
             return register == 128;
-        }        
+        }
+
+        public ushort GetRegister(Slave slave, ushort registerAddress)
+        {
+            registerAddress -= 1;
+            var register = _modbusSerial.ReadHoldingRegisters(slave.SlaveId, registerAddress, 1).First();
+            return register;
+        }
 
         #endregion
 
@@ -87,14 +90,15 @@ namespace ModbusExtension.Services
         public void SendControlMessage(Slave slave)
         {
             var startAddress = GetStartAddress(slave.DeviceNumber, 14);
-            var value = (ushort)4096;
+            const ushort value = (ushort)4096;
             _modbusSerial.WriteSingleRegister(slave.SlaveId, startAddress, value);
+            _modbusSerial.WriteSingleRegister(slave.SlaveId, startAddress, 0);
         }
 
-        private ushort GetValueToConfigurationMessage(ConfigurationMessage configurationMessage)
+        private static ushort GetValueToConfigurationMessage(ConfigurationMessage configurationMessage)
         {
             ushort value = 0;
-            value += (ushort)configurationMessage.TresholdAndHysteresis; ;
+            value += (ushort)configurationMessage.TresholdAndHysteresis;
             value += (ushort)(configurationMessage.BaselineFilter << 3);
             value += (ushort)(configurationMessage.SampleRate << 5);
             value += (ushort)(configurationMessage.ReportRate << 8);
@@ -104,7 +108,7 @@ namespace ModbusExtension.Services
         }
         #endregion
 
-        private ushort GetStartAddress(ushort deviceNumber, int offset = 0)
+        private static ushort GetStartAddress(ushort deviceNumber, int offset = 0)
         {
             return (ushort)(deviceNumber * 16 + offset);
         }

@@ -28,19 +28,23 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.uxConsoleLog = new System.Windows.Forms.TreeView();
             this.uxConsoleGroupBox = new System.Windows.Forms.GroupBox();
             this.uxRefreshConsole = new System.Windows.Forms.Button();
             this.uxOperationGroupBox = new System.Windows.Forms.GroupBox();
             this.uxStart = new System.Windows.Forms.Button();
             this.uxStop = new System.Windows.Forms.Button();
-            this.uxSettings = new System.Windows.Forms.Button();
             this.uxSerialPortStatus = new System.Windows.Forms.ListBox();
+            this.uxSerialPortList = new System.Windows.Forms.ListBox();
+            this.uxSettings = new System.Windows.Forms.Button();
             this.uxIsDead24 = new System.Windows.Forms.CheckBox();
             this.uxIsDb = new System.Windows.Forms.CheckBox();
             this.uxIsCOM = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.uxSerialPortList = new System.Windows.Forms.ListBox();
+            this.uxSerialPortTimer = new System.Windows.Forms.Timer(this.components);
+            this.uxAvailableGatewayBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.uxGatewayOperationTimer = new System.Windows.Forms.Timer(this.components);
             this.uxConsoleGroupBox.SuspendLayout();
             this.uxOperationGroupBox.SuspendLayout();
             this.SuspendLayout();
@@ -50,6 +54,9 @@
             this.uxConsoleLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.uxConsoleLog.BackColor = System.Drawing.Color.Black;
+            this.uxConsoleLog.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.uxConsoleLog.ForeColor = System.Drawing.Color.LawnGreen;
             this.uxConsoleLog.Location = new System.Drawing.Point(6, 23);
             this.uxConsoleLog.Name = "uxConsoleLog";
             this.uxConsoleLog.Size = new System.Drawing.Size(484, 425);
@@ -79,6 +86,7 @@
             this.uxRefreshConsole.TabIndex = 2;
             this.uxRefreshConsole.Text = "Wyczyść";
             this.uxRefreshConsole.UseVisualStyleBackColor = true;
+            this.uxRefreshConsole.Click += new System.EventHandler(this.uxRefreshConsole_Click);
             // 
             // uxOperationGroupBox
             // 
@@ -86,13 +94,13 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.uxOperationGroupBox.Controls.Add(this.uxStart);
             this.uxOperationGroupBox.Controls.Add(this.uxStop);
-            this.uxOperationGroupBox.Controls.Add(this.uxSettings);
             this.uxOperationGroupBox.Controls.Add(this.uxSerialPortStatus);
+            this.uxOperationGroupBox.Controls.Add(this.uxSerialPortList);
+            this.uxOperationGroupBox.Controls.Add(this.uxSettings);
             this.uxOperationGroupBox.Controls.Add(this.uxIsDead24);
             this.uxOperationGroupBox.Controls.Add(this.uxIsDb);
             this.uxOperationGroupBox.Controls.Add(this.uxIsCOM);
             this.uxOperationGroupBox.Controls.Add(this.label1);
-            this.uxOperationGroupBox.Controls.Add(this.uxSerialPortList);
             this.uxOperationGroupBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.uxOperationGroupBox.Location = new System.Drawing.Point(521, 12);
             this.uxOperationGroupBox.Name = "uxOperationGroupBox";
@@ -103,9 +111,9 @@
             // 
             // uxStart
             // 
-            this.uxStart.Location = new System.Drawing.Point(9, 23);
+            this.uxStart.Location = new System.Drawing.Point(6, 23);
             this.uxStart.Name = "uxStart";
-            this.uxStart.Size = new System.Drawing.Size(341, 46);
+            this.uxStart.Size = new System.Drawing.Size(344, 46);
             this.uxStart.TabIndex = 9;
             this.uxStart.Text = "Start aplikacji";
             this.uxStart.UseVisualStyleBackColor = true;
@@ -113,22 +121,12 @@
             // 
             // uxStop
             // 
-            this.uxStop.Location = new System.Drawing.Point(9, 75);
+            this.uxStop.Location = new System.Drawing.Point(6, 75);
             this.uxStop.Name = "uxStop";
-            this.uxStop.Size = new System.Drawing.Size(341, 46);
+            this.uxStop.Size = new System.Drawing.Size(344, 46);
             this.uxStop.TabIndex = 8;
             this.uxStop.Text = "Stop aplikacji";
             this.uxStop.UseVisualStyleBackColor = true;
-            // 
-            // uxSettings
-            // 
-            this.uxSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.uxSettings.Location = new System.Drawing.Point(124, 454);
-            this.uxSettings.Name = "uxSettings";
-            this.uxSettings.Size = new System.Drawing.Size(226, 77);
-            this.uxSettings.TabIndex = 7;
-            this.uxSettings.Text = "Wprowadź zmiany";
-            this.uxSettings.UseVisualStyleBackColor = true;
             // 
             // uxSerialPortStatus
             // 
@@ -141,6 +139,28 @@
             this.uxSerialPortStatus.SelectionMode = System.Windows.Forms.SelectionMode.None;
             this.uxSerialPortStatus.Size = new System.Drawing.Size(226, 292);
             this.uxSerialPortStatus.TabIndex = 6;
+            // 
+            // uxSerialPortList
+            // 
+            this.uxSerialPortList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.uxSerialPortList.FormattingEnabled = true;
+            this.uxSerialPortList.ItemHeight = 18;
+            this.uxSerialPortList.Location = new System.Drawing.Point(6, 156);
+            this.uxSerialPortList.Name = "uxSerialPortList";
+            this.uxSerialPortList.SelectionMode = System.Windows.Forms.SelectionMode.None;
+            this.uxSerialPortList.Size = new System.Drawing.Size(115, 292);
+            this.uxSerialPortList.TabIndex = 1;
+            // 
+            // uxSettings
+            // 
+            this.uxSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.uxSettings.Location = new System.Drawing.Point(124, 454);
+            this.uxSettings.Name = "uxSettings";
+            this.uxSettings.Size = new System.Drawing.Size(226, 77);
+            this.uxSettings.TabIndex = 7;
+            this.uxSettings.Text = "Wprowadź zmiany";
+            this.uxSettings.UseVisualStyleBackColor = true;
             // 
             // uxIsDead24
             // 
@@ -184,17 +204,21 @@
             this.label1.TabIndex = 2;
             this.label1.Text = "Lista dostępnych portów COM";
             // 
-            // uxSerialPortList
+            // uxSerialPortTimer
             // 
-            this.uxSerialPortList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));
-            this.uxSerialPortList.FormattingEnabled = true;
-            this.uxSerialPortList.ItemHeight = 18;
-            this.uxSerialPortList.Location = new System.Drawing.Point(6, 156);
-            this.uxSerialPortList.Name = "uxSerialPortList";
-            this.uxSerialPortList.SelectionMode = System.Windows.Forms.SelectionMode.None;
-            this.uxSerialPortList.Size = new System.Drawing.Size(112, 292);
-            this.uxSerialPortList.TabIndex = 1;
+            this.uxSerialPortTimer.Interval = 5000;
+            this.uxSerialPortTimer.Tick += new System.EventHandler(this.uxSerialPortTimer_Tick);
+            // 
+            // uxAvailableGatewayBackgroundWorker
+            // 
+            this.uxAvailableGatewayBackgroundWorker.WorkerReportsProgress = true;
+            this.uxAvailableGatewayBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.uxAvailableGatewayBackgroundWorker_DoWork);
+            this.uxAvailableGatewayBackgroundWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.uxAvailableGatewayBackgroundWorker_ProgressChanged);
+            // 
+            // uxGatewayOperationTimer
+            // 
+            this.uxGatewayOperationTimer.Interval = 5000;
+            this.uxGatewayOperationTimer.Tick += new System.EventHandler(this.uxGatewayOperationTimer_Tick);
             // 
             // MainForm
             // 
@@ -231,6 +255,9 @@
         private System.Windows.Forms.CheckBox uxIsCOM;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListBox uxSerialPortList;
+        private System.Windows.Forms.Timer uxSerialPortTimer;
+        private System.ComponentModel.BackgroundWorker uxAvailableGatewayBackgroundWorker;
+        private System.Windows.Forms.Timer uxGatewayOperationTimer;
     }
 }
 

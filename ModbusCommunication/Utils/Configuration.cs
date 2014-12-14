@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
-using ModbusSensorOperation.Models;
+using ModbusCommunication.Models;
 
-namespace ModbusSensorOperation.Utils
+namespace ModbusCommunication.Utils
 {
     internal class Configuration
     {
         readonly Dictionary<string, string> _configParams;
+// ReSharper disable once InconsistentNaming
         static readonly Configuration _instance = new Configuration();
 
         static Configuration()

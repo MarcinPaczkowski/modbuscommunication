@@ -1,18 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using ModbusSensorOperation.Models;
-using ModbusSensorOperation.Repositories;
+using ModbusCommunication.Models;
+using ModbusCommunication.Repositories;
 
-namespace ModbusSensorOperation.Services
+namespace ModbusCommunication.Services
 {
     internal class GatewayService
     {
         private readonly GatewayRepository _gatewayRepository;
+        private readonly SensorRepository _sensorRepository;
         private readonly SerialPortService _serialPortService;
 
         internal GatewayService()
         {
             _gatewayRepository = new GatewayRepository();
+            _sensorRepository = new SensorRepository();
             _serialPortService = new SerialPortService();
         }
 
@@ -20,6 +22,9 @@ namespace ModbusSensorOperation.Services
         {
             var gateways = _gatewayRepository.SelectGateways();
             gateways = GetAvailabilityGateways(gateways);
+            foreach (var gateway in gateways)
+                gateway.Sensors = _sensorRepository.SelectSensors(gateway.GatewayId);
+            
             return gateways;
         }
 
@@ -28,9 +33,8 @@ namespace ModbusSensorOperation.Services
             var availableSerialPorts = _serialPortService.GetAvailableSerialPorts();
 
             foreach (var gateway in gateways)
-            {
-                gateway.ConnectionStatus = availableSerialPorts.Any(p => p.Equals(gateway.SerialPort)) ? 1 : 0;
-            }
+                gateway.IsAvailable = availableSerialPorts.Any(p => p.Equals(gateway.SerialPort));
+            
             return gateways;
         }
     }

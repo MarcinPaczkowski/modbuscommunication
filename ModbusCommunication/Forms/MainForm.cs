@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel;
 using System.Windows.Forms;
-using ModbusSensorOperation.Models;
-using ModbusSensorOperation.Services;
+using ModbusCommunication.Models;
+using ModbusCommunication.Services;
 
 namespace ModbusCommunication.Forms
 {
     public partial class MainForm : Form
     {
-        private GatewayService _gatewayService;
-        private List<Gateway> _gateways;
+        private SerialPortBackgroundWorkerService _serialPortBackgroundWorkerService;
 
         public MainForm()
         {
@@ -20,62 +19,80 @@ namespace ModbusCommunication.Forms
 
         private void InitializeCommonObjects()
         {
-            _gatewayService = new GatewayService();
-            _gateways = new List<Gateway>();
+            _serialPortBackgroundWorkerService = new SerialPortBackgroundWorkerService(uxSerialPortList, uxSerialPortStatus);
+            uxSerialPortTimer.Start();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
             try
             {
-                _gateways = _gatewayService.GetGateways();
-                ReloadSerialPortList();
-                ReloadSerialPortStatuses();
+                var gateways = _serialPortBackgroundWorkerService.GetGateways();
+                _serialPortBackgroundWorkerService.ReloadListBoxes(gateways);
             }
             catch (Exception ex)
             {
                 uxConsoleLog.Nodes.Add(ex.Message);
             }
-            
         }
 
-        private void ReloadSerialPortList()
+        #region GetAvailableSerialPorts
+
+        private void uxSerialPortTimer_Tick(object sender, EventArgs e)
         {
-            var serialPorts = _gateways.Select(g => g.SerialPort).ToList();
-            foreach (var serialPort in serialPorts)
-                uxSerialPortList.Items.Add(serialPort);
+            uxAvailableGatewayBackgroundWorker.RunWorkerAsync();
         }
-        
-        private void ReloadSerialPortStatuses()
+
+        private void uxAvailableGatewayBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            var activeSerialPorts = _gateways.Select(g => g.ConnectionStatus).ToList();
-            foreach (var serialPortStatus in activeSerialPorts.Select(GetSerialPortStatusDescription))
+            try
             {
-                uxSerialPortStatus.Items.Add(serialPortStatus);
+                var gateways = _serialPortBackgroundWorkerService.GetGateways();
+                uxAvailableGatewayBackgroundWorker.ReportProgress(100, gateways);
+            }
+            catch (Exception ex)
+            {
+                uxAvailableGatewayBackgroundWorker.ReportProgress(0, ex.Message);
             }
         }
 
-        private static string GetSerialPortStatusDescription(int activeSerialPort)
+        private void uxAvailableGatewayBackgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            var serialPortStatus = "";
-            switch (activeSerialPort)
+            if (e.ProgressPercentage == 100)
             {
-                case 0:
-                    serialPortStatus = "Nieaktywny";
-                    break;
-                case 1:
-                    serialPortStatus = "Aktywny";
-                    break;
-                case 2:
-                    serialPortStatus = "Nieaktywny od 24h";
-                    break;
+                var gateways = (List<Gateway>)(e.UserState);
+                _serialPortBackgroundWorkerService.ReloadListBoxes(gateways);
             }
-            return serialPortStatus;
+            else
+            {
+                uxConsoleLog.Nodes.Add(e.UserState.ToString());
+            }
+        }
+
+        #endregion
+
+        #region Get/SetGatewaysAndSensors
+        private void uxGatewayOperationTimer_Tick(object sender, EventArgs e)
+        {
+
+        }
+
+        #endregion
+
+        private void uxRefreshConsole_Click(object sender, EventArgs e)
+        {
+            uxConsoleLog.Nodes.Clear();
         }
 
         private void uxStart_Click(object sender, EventArgs e)
         {
-            
+
         }
+
+        
+
+        
+
+        
     }
 }

@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ModbusSensorOperation.Models;
+﻿using ModbusCommunication.Models;
 using Npgsql;
 
-namespace ModbusSensorOperation.Utils
+namespace ModbusCommunication.Utils
 {
     internal class DbConnection
     {

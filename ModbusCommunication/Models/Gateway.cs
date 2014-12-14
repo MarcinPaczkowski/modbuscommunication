@@ -1,4 +1,6 @@
-﻿namespace ModbusSensorOperation.Models
+﻿using System.Collections.Generic;
+
+namespace ModbusCommunication.Models
 {
     public class Gateway
     {
@@ -6,8 +8,7 @@
         public string ZoneName { get; set; }
         public int GatewayId { get; set; }
         public string SerialPort { get; set; }
-        public int ActiveStatus { get; set; }
-        public int ConnectionStatus { get; set; }
-        public int Command { get; set; }
+        public bool IsAvailable { get; set; }
+        public List<Sensor> Sensors { get; set; }
     }
 }

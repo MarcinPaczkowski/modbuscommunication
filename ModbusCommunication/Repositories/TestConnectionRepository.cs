@@ -1,8 +1,8 @@
-﻿using ModbusSensorOperation.Utils;
+﻿using System;
+using ModbusCommunication.Utils;
 using Npgsql;
-using System;
 
-namespace ModbusSensorOperation.Repositories
+namespace ModbusCommunication.Repositories
 {
     internal class TestConnectionRepository
     {

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Windows.Forms;
 using ModbusCommunication.Forms;
-using ModbusSensorOperation.Repositories;
-using ModbusSensorOperation.Utils;
+using ModbusCommunication.Repositories;
+using ModbusCommunication.Utils;
 
-namespace ModbusSensorOperation
+namespace ModbusCommunication
 {
     static class Program
     {

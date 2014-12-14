@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using ModbusSensorOperation.Models;
-using ModbusSensorOperation.Utils;
+using ModbusCommunication.Models;
+using ModbusCommunication.Utils;
 using Npgsql;
 
-namespace ModbusSensorOperation.Repositories
+namespace ModbusCommunication.Repositories
 {
     internal class GatewayRepository
     {
@@ -28,10 +28,7 @@ namespace ModbusSensorOperation.Repositories
                             GatewayId = Convert.ToInt32(dr["GatewayId"]),
                             ZoneId = Convert.ToInt32(dr["ZoneId"]),
                             SerialPort = dr["SerialPort"].ToString(),
-                            ZoneName = dr["ZoneName"].ToString(),
-                            ActiveStatus = Convert.ToInt32(dr["ActiveStatus"]),
-                            Command = Convert.ToInt32(dr["Command"]),
-                            ConnectionStatus = Convert.ToInt32(dr["ConnectionStatus"]),
+                            ZoneName = dr["ZoneName"].ToString()
                         });
                     }
                 }
@@ -49,17 +46,11 @@ namespace ModbusSensorOperation.Repositories
                             ,g.id_zone as ZoneId
                             ,g.com as SerialPort
                             ,z.name as ZoneName
-                            ,grx.connectnow as ConnectionStatus
-                            ,grx.activenow as ActiveStatus
-                            ,grx.cmd as Command
                     FROM	gateway as g
                     JOIN    zones as z
                     ON      g.id_zone = z.id_zone
-                    JOIN    gatewayrx as grx
-                    ON      g.id = grx.id_gateway
                     WHERE   z.active = true
-                    AND     g.active = true
-                    AND     grx.activenow > 0";
+                    AND     g.active = true";
             return query;
         }
     }
