@@ -64,10 +64,12 @@
     <Compile Include="Repositories\GatewayRepository.cs" />
     <Compile Include="Repositories\SensorRepository.cs" />
     <Compile Include="Repositories\TestConnectionRepository.cs" />
+    <Compile Include="Services\BackgroundWorkerServices\SensorBgWService.cs" />
     <Compile Include="Services\GatewayService.cs" />
-    <Compile Include="Services\SerialPortBackgroundWorkerService.cs" />
+    <Compile Include="Services\SensorService.cs" />
     <Compile Include="Services\SerialPortService.cs" />
     <Compile Include="Utils\Configuration.cs" />
+    <Compile Include="Utils\ConsoleHelper.cs" />
     <Compile Include="Utils\DbConnection.cs" />
     <EmbeddedResource Include="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>

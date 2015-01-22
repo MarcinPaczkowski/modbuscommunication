@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.uxConsole = new System.Windows.Forms.TreeView();
             this.uxOpenConnection = new System.Windows.Forms.Button();
             this.uxRefreshAvailableSerialPorts = new System.Windows.Forms.Button();
@@ -39,10 +40,13 @@
             this.uxCalibration = new System.Windows.Forms.Button();
             this.uxCloseConnection = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.uxRegisterNumber = new System.Windows.Forms.NumericUpDown();
             this.uxGet6601Register = new System.Windows.Forms.Button();
             this.uxConsoleClear = new System.Windows.Forms.Button();
-            this.uxRegisterNumber = new System.Windows.Forms.NumericUpDown();
-            this.label2 = new System.Windows.Forms.Label();
+            this.uxStartCheckStatuses = new System.Windows.Forms.Button();
+            this.uxStopCheckStatuses = new System.Windows.Forms.Button();
+            this.uxCheckStatusTimer = new System.Windows.Forms.Timer(this.components);
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.uxRegisterNumber)).BeginInit();
             this.SuspendLayout();
@@ -57,7 +61,7 @@
             this.uxConsole.ForeColor = System.Drawing.Color.LawnGreen;
             this.uxConsole.Location = new System.Drawing.Point(12, 12);
             this.uxConsole.Name = "uxConsole";
-            this.uxConsole.Size = new System.Drawing.Size(716, 553);
+            this.uxConsole.Size = new System.Drawing.Size(772, 673);
             this.uxConsole.TabIndex = 0;
             // 
             // uxOpenConnection
@@ -87,7 +91,7 @@
             this.uxTestConnection.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.uxTestConnection.Location = new System.Drawing.Point(6, 122);
             this.uxTestConnection.Name = "uxTestConnection";
-            this.uxTestConnection.Size = new System.Drawing.Size(244, 54);
+            this.uxTestConnection.Size = new System.Drawing.Size(248, 54);
             this.uxTestConnection.TabIndex = 3;
             this.uxTestConnection.Text = "Test połączenia";
             this.uxTestConnection.UseVisualStyleBackColor = true;
@@ -116,7 +120,7 @@
             this.uxGetRegisterValues.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.uxGetRegisterValues.Location = new System.Drawing.Point(6, 182);
             this.uxGetRegisterValues.Name = "uxGetRegisterValues";
-            this.uxGetRegisterValues.Size = new System.Drawing.Size(244, 54);
+            this.uxGetRegisterValues.Size = new System.Drawing.Size(248, 54);
             this.uxGetRegisterValues.TabIndex = 7;
             this.uxGetRegisterValues.Text = "Pobierz wartości rejestrów";
             this.uxGetRegisterValues.UseVisualStyleBackColor = true;
@@ -127,7 +131,7 @@
             this.uxGetEMValue.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.uxGetEMValue.Location = new System.Drawing.Point(6, 242);
             this.uxGetEMValue.Name = "uxGetEMValue";
-            this.uxGetEMValue.Size = new System.Drawing.Size(244, 54);
+            this.uxGetEMValue.Size = new System.Drawing.Size(248, 54);
             this.uxGetEMValue.TabIndex = 8;
             this.uxGetEMValue.Text = "Pobierz wartość 1 rejestru";
             this.uxGetEMValue.UseVisualStyleBackColor = true;
@@ -138,7 +142,7 @@
             this.uxCalibration.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.uxCalibration.Location = new System.Drawing.Point(6, 302);
             this.uxCalibration.Name = "uxCalibration";
-            this.uxCalibration.Size = new System.Drawing.Size(244, 54);
+            this.uxCalibration.Size = new System.Drawing.Size(248, 54);
             this.uxCalibration.TabIndex = 9;
             this.uxCalibration.Text = "Kalibruj czujnik";
             this.uxCalibration.UseVisualStyleBackColor = true;
@@ -159,6 +163,8 @@
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.uxStopCheckStatuses);
+            this.groupBox1.Controls.Add(this.uxStartCheckStatuses);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.uxRegisterNumber);
             this.groupBox1.Controls.Add(this.uxGet6601Register);
@@ -172,19 +178,42 @@
             this.groupBox1.Controls.Add(this.uxTestConnection);
             this.groupBox1.Controls.Add(this.uxGetRegisterValues);
             this.groupBox1.Controls.Add(this.uxAvaibleSerialPorts);
-            this.groupBox1.Location = new System.Drawing.Point(732, 12);
+            this.groupBox1.Location = new System.Drawing.Point(788, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(262, 552);
+            this.groupBox1.Size = new System.Drawing.Size(262, 673);
             this.groupBox1.TabIndex = 11;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Operacje";
             // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.label2.Location = new System.Drawing.Point(2, 359);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(101, 20);
+            this.label2.TabIndex = 14;
+            this.label2.Text = "Podaj rejestr:";
+            // 
+            // uxRegisterNumber
+            // 
+            this.uxRegisterNumber.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.uxRegisterNumber.Location = new System.Drawing.Point(6, 382);
+            this.uxRegisterNumber.Maximum = new decimal(new int[] {
+            9999,
+            0,
+            0,
+            0});
+            this.uxRegisterNumber.Name = "uxRegisterNumber";
+            this.uxRegisterNumber.Size = new System.Drawing.Size(248, 31);
+            this.uxRegisterNumber.TabIndex = 13;
+            // 
             // uxGet6601Register
             // 
             this.uxGet6601Register.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.uxGet6601Register.Location = new System.Drawing.Point(6, 432);
+            this.uxGet6601Register.Location = new System.Drawing.Point(6, 419);
             this.uxGet6601Register.Name = "uxGet6601Register";
-            this.uxGet6601Register.Size = new System.Drawing.Size(244, 54);
+            this.uxGet6601Register.Size = new System.Drawing.Size(248, 54);
             this.uxGet6601Register.TabIndex = 12;
             this.uxGet6601Register.Text = "Pobierz rejestr 6601";
             this.uxGet6601Register.UseVisualStyleBackColor = true;
@@ -193,45 +222,48 @@
             // uxConsoleClear
             // 
             this.uxConsoleClear.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.uxConsoleClear.Location = new System.Drawing.Point(6, 492);
+            this.uxConsoleClear.Location = new System.Drawing.Point(6, 602);
             this.uxConsoleClear.Name = "uxConsoleClear";
-            this.uxConsoleClear.Size = new System.Drawing.Size(244, 54);
+            this.uxConsoleClear.Size = new System.Drawing.Size(248, 54);
             this.uxConsoleClear.TabIndex = 11;
             this.uxConsoleClear.Text = "Wyczyść konsole";
             this.uxConsoleClear.UseVisualStyleBackColor = true;
             this.uxConsoleClear.Click += new System.EventHandler(this.uxConsoleClear_Click);
             // 
-            // uxRegisterNumber
+            // uxStartCheckStatuses
             // 
-            this.uxRegisterNumber.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.uxRegisterNumber.Location = new System.Drawing.Point(6, 395);
-            this.uxRegisterNumber.Maximum = new decimal(new int[] {
-            9999,
-            0,
-            0,
-            0});
-            this.uxRegisterNumber.Name = "uxRegisterNumber";
-            this.uxRegisterNumber.Size = new System.Drawing.Size(244, 31);
-            this.uxRegisterNumber.TabIndex = 13;
+            this.uxStartCheckStatuses.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.uxStartCheckStatuses.Location = new System.Drawing.Point(6, 479);
+            this.uxStartCheckStatuses.Name = "uxStartCheckStatuses";
+            this.uxStartCheckStatuses.Size = new System.Drawing.Size(248, 54);
+            this.uxStartCheckStatuses.TabIndex = 15;
+            this.uxStartCheckStatuses.Text = "Start - sprawdzaj stany czujników";
+            this.uxStartCheckStatuses.UseVisualStyleBackColor = true;
+            this.uxStartCheckStatuses.Click += new System.EventHandler(this.uxStartCheckStatuses_Click);
             // 
-            // label2
+            // uxStopCheckStatuses
             // 
-            this.label2.AutoSize = true;
-            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.label2.Location = new System.Drawing.Point(2, 372);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(101, 20);
-            this.label2.TabIndex = 14;
-            this.label2.Text = "Podaj rejestr:";
+            this.uxStopCheckStatuses.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.uxStopCheckStatuses.Location = new System.Drawing.Point(6, 539);
+            this.uxStopCheckStatuses.Name = "uxStopCheckStatuses";
+            this.uxStopCheckStatuses.Size = new System.Drawing.Size(248, 54);
+            this.uxStopCheckStatuses.TabIndex = 16;
+            this.uxStopCheckStatuses.Text = "Stop - sprawdzaj stany czujników";
+            this.uxStopCheckStatuses.UseVisualStyleBackColor = true;
+            this.uxStopCheckStatuses.Click += new System.EventHandler(this.uxStopCheckStatuses_Click);
+            // 
+            // uxCheckStatusTimer
+            // 
+            this.uxCheckStatusTimer.Tick += new System.EventHandler(this.uxCheckStatusTimer_Tick);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1006, 576);
+            this.ClientSize = new System.Drawing.Size(1062, 697);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.uxConsole);
-            this.MinimumSize = new System.Drawing.Size(938, 569);
+            this.MinimumSize = new System.Drawing.Size(1078, 736);
             this.Name = "MainForm";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.MainForm_Load);
@@ -259,6 +291,9 @@
         private System.Windows.Forms.Button uxGet6601Register;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.NumericUpDown uxRegisterNumber;
+        private System.Windows.Forms.Button uxStartCheckStatuses;
+        private System.Windows.Forms.Button uxStopCheckStatuses;
+        private System.Windows.Forms.Timer uxCheckStatusTimer;
     }
 }
 

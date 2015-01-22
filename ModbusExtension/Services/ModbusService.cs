@@ -1,4 +1,5 @@
 ﻿using Modbus.Device;
+using ModbusExtension.Enums;
 using ModbusExtension.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,7 +37,7 @@ namespace ModbusExtension.Services
             return registers[0];
         }
 
-        public bool CheckStateOfSensor(Slave slave)
+        public bool GetSensorStatus(Slave slave)
         {
             var startAddress = GetStartAddress(slave.DeviceNumber);
             var registers = _modbusSerial.ReadHoldingRegisters(slave.SlaveId, startAddress, 16);

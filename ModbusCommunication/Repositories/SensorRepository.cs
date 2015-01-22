@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ModbusCommunication.Models;
 using ModbusCommunication.Utils;
 using Npgsql;
@@ -11,11 +12,11 @@ namespace ModbusCommunication.Repositories
         internal List<Sensor> SelectSensors(int gatewayId)
         {
             var sensors = new List<Sensor>();
-
             var selectQuery = GetSelectQuery();
 
             using (var command = new NpgsqlCommand(selectQuery))
             {
+                command.Parameters.AddWithValue("@GatewayId", gatewayId);
                 command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
                 command.Connection.Open();
 
@@ -25,9 +26,9 @@ namespace ModbusCommunication.Repositories
                     {
                         sensors.Add(new Sensor
                         {
-                            Id = Convert.ToInt32(dr["Id"]),
-                            IsActive = Convert.ToInt32(dr["IsActive"]) == 1,
-                            Status = GetSensorStatus(Convert.ToInt32(dr["Status"]))
+                            Id = Convert.ToInt32(dr["SensorId"]),
+                            GatewayId = gatewayId,
+                            Status = Convert.ToInt32(dr["Status"])
                         });
                     }
                 }
@@ -38,30 +39,76 @@ namespace ModbusCommunication.Repositories
             return sensors;
         }
 
-        private static string GetSensorStatus(int status)
+        internal void InsertSensorToArchive(Sensor sensor)
         {
-            switch (status)
+            var insertQuery = GetInsertSensorArchiveQuery();
+            using (var command = new NpgsqlCommand(insertQuery))
             {
-                case 0:
-                    return "Nieaktywny";
-                case 1:
-                    return "Aktywny";
-                default:
-                    return "Nieaktywny od 24h";
+                command.Parameters.AddWithValue("@GatewayId", sensor.GatewayId);
+                command.Parameters.AddWithValue("@SensorId", sensor.Id);
+                command.Parameters.AddWithValue("@Status", sensor.Status);
+
+                command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
+                command.Connection.Open();
+                command.ExecuteNonQuery();
+
+                command.Connection.Close();
             }
+        }
+
+        internal void UpdateSensorStatus(Sensor sensor)
+        {
+            var updateQuery = GetUpdateSensorQuery();
+            using (var command = new NpgsqlCommand(updateQuery))
+            {
+                command.Parameters.AddWithValue("@GatewayId", sensor.GatewayId);
+                command.Parameters.AddWithValue("@SensorId", sensor.Id);
+                command.Parameters.AddWithValue("@Status", sensor.Status);
+
+                command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
+                command.Connection.Open();
+                command.ExecuteNonQuery();
+
+                command.Connection.Close();
+            }
+        }
+
+        private static string GetUpdateSensorQuery()
+        {
+            const string query = @"
+                UPDATE sensors
+                   SET status = @Status
+                 WHERE id_gateway = @GatewayId
+                   AND id_sensor  = @SensorId";
+            return query;
         }
 
         private static string GetSelectQuery()
         {
             const string query = @"
-                        SELECT 	 s.id_sensor as Id
-	                            ,g.connectnow as Status
-	                            ,g.active as IsActive
-                          FROM	gatewayrx as g
-                          JOIN  sensors as s
-                            ON  s.id_gateway = g.id_gateway
-                         WHERE  g.index = s.id_sensor
-                           AND   s.id_gateway = @GatewayId";
+                select 	 s.id_sensor as SensorId
+	                    ,s.status as Status
+                from    sensors as s
+                join    gateway as g
+                on      s.id_gateway = g.id
+                where   g.active = true
+                and     s.id_gateway = @GatewayId";
+            return query;
+        }
+
+        private static string GetInsertSensorArchiveQuery()
+        {
+            const string query = @"
+            INSERT INTO sensors_archive
+                        (id_gateway
+                        ,id_sensor
+                        ,status
+                        ,time)
+                 VALUES 
+                        (@GatewayId
+                        ,@SensorId
+                        ,@Status
+                        ,now());";
             return query;
         }
     }

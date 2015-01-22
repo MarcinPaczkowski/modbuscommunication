@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.uxConsoleLog = new System.Windows.Forms.TreeView();
             this.uxConsoleGroupBox = new System.Windows.Forms.GroupBox();
             this.uxRefreshConsole = new System.Windows.Forms.Button();
@@ -42,9 +41,6 @@
             this.uxIsDb = new System.Windows.Forms.CheckBox();
             this.uxIsCOM = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.uxSerialPortTimer = new System.Windows.Forms.Timer(this.components);
-            this.uxAvailableGatewayBackgroundWorker = new System.ComponentModel.BackgroundWorker();
-            this.uxGatewayOperationTimer = new System.Windows.Forms.Timer(this.components);
             this.uxConsoleGroupBox.SuspendLayout();
             this.uxOperationGroupBox.SuspendLayout();
             this.SuspendLayout();
@@ -127,6 +123,7 @@
             this.uxStop.TabIndex = 8;
             this.uxStop.Text = "Stop aplikacji";
             this.uxStop.UseVisualStyleBackColor = true;
+            this.uxStop.Click += new System.EventHandler(this.uxStop_Click);
             // 
             // uxSerialPortStatus
             // 
@@ -204,22 +201,6 @@
             this.label1.TabIndex = 2;
             this.label1.Text = "Lista dostępnych portów COM";
             // 
-            // uxSerialPortTimer
-            // 
-            this.uxSerialPortTimer.Interval = 5000;
-            this.uxSerialPortTimer.Tick += new System.EventHandler(this.uxSerialPortTimer_Tick);
-            // 
-            // uxAvailableGatewayBackgroundWorker
-            // 
-            this.uxAvailableGatewayBackgroundWorker.WorkerReportsProgress = true;
-            this.uxAvailableGatewayBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.uxAvailableGatewayBackgroundWorker_DoWork);
-            this.uxAvailableGatewayBackgroundWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.uxAvailableGatewayBackgroundWorker_ProgressChanged);
-            // 
-            // uxGatewayOperationTimer
-            // 
-            this.uxGatewayOperationTimer.Interval = 5000;
-            this.uxGatewayOperationTimer.Tick += new System.EventHandler(this.uxGatewayOperationTimer_Tick);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -255,9 +236,6 @@
         private System.Windows.Forms.CheckBox uxIsCOM;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListBox uxSerialPortList;
-        private System.Windows.Forms.Timer uxSerialPortTimer;
-        private System.ComponentModel.BackgroundWorker uxAvailableGatewayBackgroundWorker;
-        private System.Windows.Forms.Timer uxGatewayOperationTimer;
     }
 }
 

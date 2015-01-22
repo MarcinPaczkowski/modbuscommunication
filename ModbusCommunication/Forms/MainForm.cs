@@ -1,34 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Linq;
 using System.Windows.Forms;
 using ModbusCommunication.Models;
 using ModbusCommunication.Services;
+using ModbusCommunication.Services.BackgroundWorkerServices;
+using ModbusCommunication.Utils;
 
 namespace ModbusCommunication.Forms
 {
     public partial class MainForm : Form
     {
-        private SerialPortBackgroundWorkerService _serialPortBackgroundWorkerService;
+        private GatewayService _gatewayService;
+        private SerialPortService _serialPortService;
+        private SensorBgWService _sensorBgWService;
+
+        private Timer _uxGetSensorStatusTimer;
+        private Timer _uxGetGatewaysTimer;
+
+        List<Gateway> _gateways = new List<Gateway>(); 
 
         public MainForm()
         {
             InitializeComponent();
-            InitializeCommonObjects();
+            InitializeObject();
+            TimersConfiguration();
         }
 
-        private void InitializeCommonObjects()
+        private void InitializeObject()
         {
-            _serialPortBackgroundWorkerService = new SerialPortBackgroundWorkerService(uxSerialPortList, uxSerialPortStatus);
-            uxSerialPortTimer.Start();
+            _gatewayService = new GatewayService();
+            _serialPortService = new SerialPortService();
+            _sensorBgWService = new SensorBgWService();
+
+            ConsoleHelper.InitilizeConsole(uxConsoleLog);
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private void TimersConfiguration()
         {
             try
             {
-                var gateways = _serialPortBackgroundWorkerService.GetGateways();
-                _serialPortBackgroundWorkerService.ReloadListBoxes(gateways);
+                _uxGetGatewaysTimer = new Timer
+                {
+                    Interval = Convert.ToInt32(Configuration.Instance.GetValue("GatewaysInterval"))
+                };
+
+                _uxGetSensorStatusTimer = new Timer
+                {
+                    Interval = Convert.ToInt32(Configuration.Instance.GetValue("SensorsInterval"))
+                };
+
+                _uxGetSensorStatusTimer.Tick += _uxGetSensorStatusTimer_Tick;
+                _uxGetGatewaysTimer.Tick += _uxGetGatewaysTimer_Tick;
             }
             catch (Exception ex)
             {
@@ -36,63 +59,75 @@ namespace ModbusCommunication.Forms
             }
         }
 
-        #region GetAvailableSerialPorts
-
-        private void uxSerialPortTimer_Tick(object sender, EventArgs e)
+        private void MainForm_Load(object sender, EventArgs e)
         {
-            uxAvailableGatewayBackgroundWorker.RunWorkerAsync();
+            
         }
-
-        private void uxAvailableGatewayBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            try
-            {
-                var gateways = _serialPortBackgroundWorkerService.GetGateways();
-                uxAvailableGatewayBackgroundWorker.ReportProgress(100, gateways);
-            }
-            catch (Exception ex)
-            {
-                uxAvailableGatewayBackgroundWorker.ReportProgress(0, ex.Message);
-            }
-        }
-
-        private void uxAvailableGatewayBackgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            if (e.ProgressPercentage == 100)
-            {
-                var gateways = (List<Gateway>)(e.UserState);
-                _serialPortBackgroundWorkerService.ReloadListBoxes(gateways);
-            }
-            else
-            {
-                uxConsoleLog.Nodes.Add(e.UserState.ToString());
-            }
-        }
-
-        #endregion
-
-        #region Get/SetGatewaysAndSensors
-        private void uxGatewayOperationTimer_Tick(object sender, EventArgs e)
-        {
-
-        }
-
-        #endregion
 
         private void uxRefreshConsole_Click(object sender, EventArgs e)
         {
-            uxConsoleLog.Nodes.Clear();
+            ConsoleHelper.ClearConsole();
         }
 
         private void uxStart_Click(object sender, EventArgs e)
         {
-
+            ConsoleHelper.AddMessage("Start aplikacji.");
+            StartTimers();
         }
 
-        
+        private void uxStop_Click(object sender, EventArgs e)
+        {
+            ConsoleHelper.AddMessage("Stop aplikacji.");
+            StopTimers();
+        }
 
-        
+        private void _uxGetGatewaysTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                uxSerialPortList.Items.Clear();
+                uxSerialPortStatus.Items.Clear();
+                _gateways.Clear();
 
-        
+                _gateways = _gatewayService.GetGateways();
+                foreach (var gateway in _gateways)
+                {
+                    uxSerialPortList.Items.Add(gateway.SerialPort);
+                    uxSerialPortStatus.Items.Add(gateway.IsAvailable ? "AKTYWNY" : "NIEAKTYWNY");
+                }
+            }
+            catch (Exception ex)
+            {
+                ConsoleHelper.AddMessage(ex.Message);
+            }
+        }
+
+        private void _uxGetSensorStatusTimer_Tick(object sender, EventArgs e)
+        {
+            foreach (var gateway in _gateways.Where(g => g.IsAvailable))
+            {
+                try
+                {
+                    _sensorBgWService.GetSensorStatusAndUpdateOnDb(gateway, gateway.SerialPort);
+                }
+                catch (Exception ex)
+                {
+                    ConsoleHelper.AddMessage(ex.Message);
+                    _serialPortService.DisconnectSerialPort();
+                }
+            }
+        }
+
+        private void StartTimers()
+        {
+            _uxGetGatewaysTimer.Start();
+            _uxGetSensorStatusTimer.Start();
+        }
+
+        private void StopTimers()
+        {
+            _uxGetGatewaysTimer.Stop();
+            _uxGetSensorStatusTimer.Stop();
+        }
     }
 }

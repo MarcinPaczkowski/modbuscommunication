@@ -21,14 +21,14 @@ namespace ModbusCommunication.Services
         internal List<Gateway> GetGateways()
         {
             var gateways = _gatewayRepository.SelectGateways();
-            gateways = GetAvailabilityGateways(gateways);
+            gateways = GetAvailableGateways(gateways);
             foreach (var gateway in gateways)
                 gateway.Sensors = _sensorRepository.SelectSensors(gateway.GatewayId);
             
             return gateways;
         }
 
-        private List<Gateway> GetAvailabilityGateways(List<Gateway> gateways)
+        private List<Gateway> GetAvailableGateways(List<Gateway> gateways)
         {
             var availableSerialPorts = _serialPortService.GetAvailableSerialPorts();
 

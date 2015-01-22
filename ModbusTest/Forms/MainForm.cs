@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Forms;
 using ModbusExtension.Models;
 using ModbusExtension.Services;
 using ModbusTest.Services;
+using ModbusTest.Utils;
 
 namespace ModbusTest.Forms
 {
@@ -11,19 +14,35 @@ namespace ModbusTest.Forms
     {
         private readonly ModbusService _modbusService;
         private readonly SerialPortService _serialPortService;
-        private ushort _deviceNumber;
+        private readonly List<string> _enableNodes;
 
         public MainForm()
         {
             InitializeComponent();
             _modbusService = new ModbusService();
             _serialPortService = new SerialPortService();
+
+            Configuration.Instance.LoadConfiguration("configuration.xml");
+            _enableNodes = GetEnableNodes();
+            var frequencySensorsReading = GetFrequencySensorReading();
+            uxCheckStatusTimer.Interval = Convert.ToInt32(frequencySensorsReading);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
             RefreshAvailableSerialPort();
-            _deviceNumber = 1;
+        }
+
+        private static List<string> GetEnableNodes()
+        {
+            var nodes = Configuration.Instance.GetValue("Nodes");
+            var tmpNodes = nodes.Trim();
+            return tmpNodes.Split(',').ToList();
+        }
+
+        private static string GetFrequencySensorReading()
+        {
+            return Configuration.Instance.GetValue("FrequencySensorsReading");
         }
 
         private void RefreshAvailableSerialPort()
@@ -116,15 +135,19 @@ namespace ModbusTest.Forms
                 foreach (var gateway in gatewayRegisters)
                     rootNode.Nodes.Add(gateway.ToString(CultureInfo.InvariantCulture)).EnsureVisible();
 
-                var node1Registers = _modbusService.GetAllRegisterForSelectedDevice(new Slave
+                foreach (var node in _enableNodes)
                 {
-                    DeviceNumber = _deviceNumber,
-                    SlaveId = 1
-                });
+                    var deviceNumber = (ushort)Convert.ToInt32(node);
+                    var node1Registers = _modbusService.GetAllRegisterForSelectedDevice(new Slave
+                    {
+                        DeviceNumber = deviceNumber,
+                        SlaveId = 1
+                    });
 
-                var node1Node = uxConsole.Nodes.Add("Wartości rejestrów Node1");
-                foreach (var node1Register in node1Registers)
-                    node1Node.Nodes.Add(node1Register.ToString(CultureInfo.InvariantCulture)).EnsureVisible();
+                    var treeNode = uxConsole.Nodes.Add(String.Format("Wartości rejestrów Node{0}", node));
+                    foreach (var node1Register in node1Registers)
+                        treeNode.Nodes.Add(node1Register.ToString(CultureInfo.InvariantCulture)).EnsureVisible();
+                }
             }
             catch (Exception ex)
             {
@@ -136,17 +159,22 @@ namespace ModbusTest.Forms
         {
             try
             {
-                var fieldValue = _modbusService.GetElectromagneticFieldValue(new Slave
+                foreach (var node in _enableNodes)
                 {
-                    DeviceNumber = _deviceNumber,
-                    SlaveId = 1
-                });
+                    var deviceNumber = (ushort)Convert.ToInt32(node);
+                    var fieldValue = _modbusService.GetElectromagneticFieldValue(new Slave
+                    {
+                        DeviceNumber = deviceNumber,
+                        SlaveId = 1
+                    });
 
-                uxConsole.Nodes.Add("Wartości 1 rejestru dla Node1").Nodes.Add(fieldValue.ToString(CultureInfo.InvariantCulture)).EnsureVisible();
+                    uxConsole.Nodes.Add(String.Format("Wartości 1 rejestru dla Node{0}", node)).
+                        Nodes.Add(fieldValue.ToString(CultureInfo.InvariantCulture)).EnsureVisible();
 
-                var lsb = fieldValue & 1;
-                uxConsole.Nodes.Add("Wartość najmniej znaczącego bitu w rejestrze 1 dla Node1").
-                    Nodes.Add(lsb.ToString(CultureInfo.InvariantCulture)).EnsureVisible();
+                    var lsb = fieldValue & 1;
+                    uxConsole.Nodes.Add(String.Format("Wartość najmniej znaczącego bitu w rejestrze 1 dla Node{0}", node)).
+                        Nodes.Add(lsb.ToString(CultureInfo.InvariantCulture)).EnsureVisible();
+                }
             }
             catch (Exception ex)
             {
@@ -158,13 +186,16 @@ namespace ModbusTest.Forms
         {
             try
             {
-                _modbusService.SendControlMessage(new Slave
+                foreach (var node in _enableNodes)
                 {
-                    DeviceNumber = _deviceNumber,
-                    SlaveId = 1
-                });
-
-                uxConsole.Nodes.Add("Node1 skalibrowany").EnsureVisible();
+                    var deviceNumber = (ushort)Convert.ToInt32(node);
+                    _modbusService.SendControlMessage(new Slave
+                    {
+                        DeviceNumber = deviceNumber,
+                        SlaveId = 1
+                    });
+                    uxConsole.Nodes.Add(String.Format("Node{0} skalibrowany", node)).EnsureVisible();
+                }
             }
             catch (Exception ex)
             {
@@ -193,6 +224,38 @@ namespace ModbusTest.Forms
                 {
                     rootNode.Nodes.Add((register & mask) == mask ? "1" : "0").EnsureVisible();
                     mask <<= 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                uxConsole.Nodes.Add(ex.Message).EnsureVisible();
+            }
+        }
+
+        private void uxStartCheckStatuses_Click(object sender, EventArgs e)
+        {
+            uxCheckStatusTimer.Start();
+        }
+
+        private void uxStopCheckStatuses_Click(object sender, EventArgs e)
+        {
+            uxCheckStatusTimer.Stop();
+        }
+
+        private void uxCheckStatusTimer_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                foreach (var node in _enableNodes)
+                {
+                    var deviceNumber = (ushort)Convert.ToInt32(node);
+                    var isBusy = _modbusService.GetSensorStatus(new Slave
+                    {
+                        DeviceNumber = deviceNumber,
+                        SlaveId = 1
+                    });
+                    var response = isBusy ? "ZAJĘTY" : "WOLNY";
+                    uxConsole.Nodes.Add(String.Format("Czujnik nr {0} jest {1}", node, response));
                 }
             }
             catch (Exception ex)
