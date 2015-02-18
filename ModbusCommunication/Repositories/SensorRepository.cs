@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ModbusCommunication.Models;
 using ModbusCommunication.Utils;
 using Npgsql;
@@ -39,31 +38,40 @@ namespace ModbusCommunication.Repositories
             return sensors;
         }
 
-        internal void InsertSensorToArchive(Sensor sensor)
+        internal int SelectPreviousSensorStatus(Sensor sensor, int zoneId)
         {
-            var insertQuery = GetInsertSensorArchiveQuery();
-            using (var command = new NpgsqlCommand(insertQuery))
+            var previousStatus = 0;
+            var selectQuery = GetSelectPreviousStatusQuery();
+
+            using (var command = new NpgsqlCommand(selectQuery))
             {
+                command.Parameters.AddWithValue("@ZoneId", zoneId);
                 command.Parameters.AddWithValue("@GatewayId", sensor.GatewayId);
                 command.Parameters.AddWithValue("@SensorId", sensor.Id);
-                command.Parameters.AddWithValue("@Status", sensor.Status);
 
                 command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
                 command.Connection.Open();
-                command.ExecuteNonQuery();
+
+                using (var dr = command.ExecuteReader())
+                {
+                    if (dr.Read())
+                        previousStatus = Convert.ToInt32(dr["PreviousStatus"]);
+                }
 
                 command.Connection.Close();
             }
+
+            return previousStatus;
         }
 
-        internal void UpdateSensorStatus(Sensor sensor)
+        internal void UpdateSensorStatus(Sensor sensor, int zoneId)
         {
             var updateQuery = GetUpdateSensorQuery();
             using (var command = new NpgsqlCommand(updateQuery))
             {
                 command.Parameters.AddWithValue("@GatewayId", sensor.GatewayId);
                 command.Parameters.AddWithValue("@SensorId", sensor.Id);
-                command.Parameters.AddWithValue("@Status", sensor.Status);
+                command.Parameters.AddWithValue("@ZoneId", zoneId);
 
                 command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
                 command.Connection.Open();
@@ -76,10 +84,12 @@ namespace ModbusCommunication.Repositories
         private static string GetUpdateSensorQuery()
         {
             const string query = @"
-                UPDATE sensors
-                   SET status = @Status
-                 WHERE id_gateway = @GatewayId
-                   AND id_sensor  = @SensorId";
+                UPDATE   sensors_events_cur
+                   SET   cur_state = @Status
+                        ,dtime = NOW()
+                 WHERE   id_gateway = @GatewayId
+                   AND   id_sensor  = @SensorId
+                   AND   id_zone  = @ZoneId";
             return query;
         }
 
@@ -96,19 +106,14 @@ namespace ModbusCommunication.Repositories
             return query;
         }
 
-        private static string GetInsertSensorArchiveQuery()
+        private static string GetSelectPreviousStatusQuery()
         {
             const string query = @"
-            INSERT INTO sensors_archive
-                        (id_gateway
-                        ,id_sensor
-                        ,status
-                        ,time)
-                 VALUES 
-                        (@GatewayId
-                        ,@SensorId
-                        ,@Status
-                        ,now());";
+               SELECT cur_state
+                 FROM sensors_events_cur
+                WHERE id_sensor = @SensorId
+                  AND id_gateway = @GatewayId
+                  AND id_zone = @ZoneId";
             return query;
         }
     }

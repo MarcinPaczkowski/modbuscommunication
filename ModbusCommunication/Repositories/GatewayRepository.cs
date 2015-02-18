@@ -39,6 +39,42 @@ namespace ModbusCommunication.Repositories
             return gateways;
         }
 
+        internal void InsertGatewayResponse(Gateway gateway)
+        {
+            var insertQuery = GetInsertGatewayResponseQuery();
+            using (var command = new NpgsqlCommand(insertQuery))
+            {
+                command.Parameters.AddWithValue("@GatewayId", gateway.GatewayId);
+                //command.Parameters.AddWithValue("@Resonse", gateway.GatewayId);
+
+                command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
+                command.Connection.Open();
+                command.ExecuteNonQuery();
+
+                command.Connection.Close();
+            }
+        }
+
+        private static string GetInsertGatewayResponseQuery()
+        {
+            const string query = @"
+                INSERT INTO gatewayrx
+                            (id_gateway
+                            ,'time'
+                            ,connectnow
+                            ,active
+                            ,activenow
+                            ,cmd)
+                    VALUES 
+                            (@GatewayId
+                            ,NOW()
+                            ,1
+                            ,1
+                            ,1
+                            ,@Response)";
+            return query;
+        }
+
         private static string GetSelectQuery()
         {
             const string query = @"

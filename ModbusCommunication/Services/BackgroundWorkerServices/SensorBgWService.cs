@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.IO.Ports;
 using ModbusCommunication.Models;
 using ModbusCommunication.Repositories;
 using ModbusCommunication.Utils;
@@ -51,15 +50,12 @@ namespace ModbusCommunication.Services.BackgroundWorkerServices
                 try
                 {
                     _gateway.Sensors[i] = _sensorService.GetSensorStatus(_gateway.Sensors[i], _modbusService);
-                    _sensorRepository.InsertSensorToArchive(_gateway.Sensors[i]);
-                    var sensor =
-                        _sensorRepository.SelectSensors(_gateway.Sensors[i].GatewayId)
-                            .Find(s => s.Id == _gateway.Sensors[i].Id);
+                    var previousStatus = _sensorRepository.SelectPreviousSensorStatus(_gateway.Sensors[i], _gateway.ZoneId);
 
-                    if (sensor.Status == _gateway.Sensors[i].Status) 
+                    if (_gateway.Sensors[i].Status == previousStatus)
                         continue;
 
-                    _sensorRepository.UpdateSensorStatus(_gateway.Sensors[i]);
+                    _sensorRepository.UpdateSensorStatus(_gateway.Sensors[i], _gateway.ZoneId);
 
                     var message = GetMessage(i);
 
@@ -74,7 +70,7 @@ namespace ModbusCommunication.Services.BackgroundWorkerServices
             _serialPortService.DisconnectSerialPort();
         }
 
-        private void _sensorWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private static void _sensorWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             var message = e.UserState.ToString();
             ConsoleHelper.AddMessage(message);
@@ -93,11 +89,11 @@ namespace ModbusCommunication.Services.BackgroundWorkerServices
             });
         }
 
-        private string GetMessage(int i)
+        private string GetMessage(int index)
         {
-            var message = _gateway.Sensors[i].Status == 1
-                ? String.Format("Gateway {0}, czujnik {1} - ZAJĘTY", _gateway.Sensors[i].GatewayId, _gateway.Sensors[i].Id)
-                : String.Format("Gateway {0}, czujnik {1} - WOLNY", _gateway.Sensors[i].GatewayId, _gateway.Sensors[i].Id);
+            var message = _gateway.Sensors[index].Status == 1
+                ? String.Format("Gateway {0}, czujnik {1} - ZAJĘTY", _gateway.Sensors[index].GatewayId, _gateway.Sensors[index].Id)
+                : String.Format("Gateway {0}, czujnik {1} - WOLNY", _gateway.Sensors[index].GatewayId, _gateway.Sensors[index].Id);
             return message;
         }
     }
