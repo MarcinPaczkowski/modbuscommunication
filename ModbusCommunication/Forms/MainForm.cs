@@ -11,14 +11,15 @@ namespace ModbusCommunication.Forms
 {
     public partial class MainForm : Form
     {
-        private GatewayService _gatewayService;
-        private SerialPortService _serialPortService;
-        private SensorBgWService _sensorBgWService;
+        GatewayService _gatewayService;
+        SerialPortService _serialPortService;
+        SensorBgWService _sensorBgWService;
 
-        private Timer _uxGetSensorStatusTimer;
-        private Timer _uxGetGatewaysTimer;
+        Timer _uxGetSensorStatusTimer;
+        Timer _uxGetGatewaysTimer;
 
-        List<Gateway> _gateways = new List<Gateway>(); 
+        List<Gateway> _gateways = new List<Gateway>();
+        bool _IsRunning = false;
 
         public MainForm()
         {
@@ -72,12 +73,16 @@ namespace ModbusCommunication.Forms
         private void uxStart_Click(object sender, EventArgs e)
         {
             ConsoleHelper.AddMessage("Start aplikacji.");
+            _IsRunning = true;
+            SetStartAndStopEnables();
             StartTimers();
         }
 
         private void uxStop_Click(object sender, EventArgs e)
         {
             ConsoleHelper.AddMessage("Stop aplikacji.");
+            _IsRunning = false;
+            SetStartAndStopEnables();
             StopTimers();
         }
 
@@ -104,6 +109,7 @@ namespace ModbusCommunication.Forms
 
         private void _uxGetSensorStatusTimer_Tick(object sender, EventArgs e)
         {
+            _uxGetGatewaysTimer.Stop();
             foreach (var gateway in _gateways.Where(g => g.IsAvailable))
             {
                 try
@@ -116,6 +122,7 @@ namespace ModbusCommunication.Forms
                     _serialPortService.DisconnectSerialPort();
                 }
             }
+            _uxGetGatewaysTimer.Start();
         }
 
         private void StartTimers()
@@ -128,6 +135,12 @@ namespace ModbusCommunication.Forms
         {
             _uxGetGatewaysTimer.Stop();
             _uxGetSensorStatusTimer.Stop();
+        }
+
+        private void SetStartAndStopEnables()
+        {
+            uxStart.Enabled = !_IsRunning;
+            uxStop.Enabled = _IsRunning;
         }
     }
 }

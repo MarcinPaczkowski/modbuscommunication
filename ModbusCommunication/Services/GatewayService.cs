@@ -23,7 +23,7 @@ namespace ModbusCommunication.Services
             var gateways = _gatewayRepository.SelectGateways();
             gateways = GetAvailableGateways(gateways);
             foreach (var gateway in gateways)
-                gateway.Sensors = _sensorRepository.SelectSensors(gateway.GatewayId);
+                gateway.Sensors = _sensorRepository.SelectSensors(gateway);
             
             return gateways;
         }

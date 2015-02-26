@@ -78,7 +78,7 @@ namespace ModbusCommunication.Repositories
         private static string GetSelectQuery()
         {
             const string query = @"
-                    SELECT 	 g.id as GatewayId
+                    SELECT 	 g.id_gateway as GatewayId
                             ,g.id_zone as ZoneId
                             ,g.com as SerialPort
                             ,z.name as ZoneName

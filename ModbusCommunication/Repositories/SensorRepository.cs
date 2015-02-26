@@ -8,14 +8,15 @@ namespace ModbusCommunication.Repositories
 {
     internal class SensorRepository
     {
-        internal List<Sensor> SelectSensors(int gatewayId)
+        internal List<Sensor> SelectSensors(Gateway gateway)
         {
             var sensors = new List<Sensor>();
             var selectQuery = GetSelectQuery();
 
             using (var command = new NpgsqlCommand(selectQuery))
             {
-                command.Parameters.AddWithValue("@GatewayId", gatewayId);
+                command.Parameters.AddWithValue("@GatewayId", gateway.GatewayId);
+                command.Parameters.AddWithValue("@ZoneId", gateway.ZoneId);
                 command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
                 command.Connection.Open();
 
@@ -26,8 +27,7 @@ namespace ModbusCommunication.Repositories
                         sensors.Add(new Sensor
                         {
                             Id = Convert.ToInt32(dr["SensorId"]),
-                            GatewayId = gatewayId,
-                            Status = Convert.ToInt32(dr["Status"])
+                            GatewayId = gateway.GatewayId,
                         });
                     }
                 }
@@ -54,7 +54,7 @@ namespace ModbusCommunication.Repositories
 
                 using (var dr = command.ExecuteReader())
                 {
-                    if (dr.Read())
+                    while (dr.Read())
                         previousStatus = Convert.ToInt32(dr["PreviousStatus"]);
                 }
 
@@ -72,6 +72,7 @@ namespace ModbusCommunication.Repositories
                 command.Parameters.AddWithValue("@GatewayId", sensor.GatewayId);
                 command.Parameters.AddWithValue("@SensorId", sensor.Id);
                 command.Parameters.AddWithValue("@ZoneId", zoneId);
+                command.Parameters.AddWithValue("@Status", sensor.Status);
 
                 command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
                 command.Connection.Open();
@@ -96,20 +97,20 @@ namespace ModbusCommunication.Repositories
         private static string GetSelectQuery()
         {
             const string query = @"
-                select 	 s.id_sensor as SensorId
-	                    ,s.status as Status
+                select 	s.id_sensor as SensorId
                 from    sensors as s
                 join    gateway as g
-                on      s.id_gateway = g.id
+                on      s.id_gateway = g.id_gateway
                 where   g.active = true
-                and     s.id_gateway = @GatewayId";
+                and     s.id_gateway = @GatewayId
+                and     g.id_zone = @ZoneId";
             return query;
         }
 
         private static string GetSelectPreviousStatusQuery()
         {
             const string query = @"
-               SELECT cur_state
+               SELECT cur_state as PreviousStatus
                  FROM sensors_events_cur
                 WHERE id_sensor = @SensorId
                   AND id_gateway = @GatewayId

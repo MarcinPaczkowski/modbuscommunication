@@ -117,6 +117,7 @@
             // 
             // uxStop
             // 
+            this.uxStop.Enabled = false;
             this.uxStop.Location = new System.Drawing.Point(6, 75);
             this.uxStop.Name = "uxStop";
             this.uxStop.Size = new System.Drawing.Size(344, 46);
