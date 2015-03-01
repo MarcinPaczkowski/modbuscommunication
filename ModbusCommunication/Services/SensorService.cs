@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO.Ports;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ModbusCommunication.Models;
-using ModbusCommunication.Repositories;
+﻿using ModbusCommunication.Models;
 using ModbusExtension.Models;
 using ModbusExtension.Services;
 
@@ -13,8 +6,6 @@ namespace ModbusCommunication.Services
 {
     internal class SensorService
     {
-        readonly SensorRepository _sensorRepository = new SensorRepository();
-
         internal Sensor GetSensorStatus(Sensor sensor, ModbusService modbusService)
         {
             var status = modbusService.GetSensorStatus(new Slave
@@ -30,6 +21,15 @@ namespace ModbusCommunication.Services
         internal void CompareSensorStateWithDb(Sensor sensor)
         {
             
+        }
+
+        internal bool CheckIfSensorIsActive(Sensor sensor, ModbusService modbusService)
+        {
+            return modbusService.CheckActivityStatusOfDevice(new Slave
+            {
+                DeviceNumber = (ushort)sensor.Id,
+                SlaveId = (byte)sensor.GatewayId
+            });
         }
     }
 }

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Windows.Forms;
+using ModbusCommon.Repositories;
 using ModbusCommunication.Forms;
 using ModbusCommunication.Repositories;
-using ModbusCommunication.Utils;
+using ModbusCommon.Utils;
 
 namespace ModbusCommunication
 {

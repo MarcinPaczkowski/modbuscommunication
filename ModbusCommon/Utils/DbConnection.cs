@@ -1,12 +1,13 @@
-﻿using ModbusCommunication.Models;
+﻿using ModbusCommon.Models;
 using Npgsql;
 
-namespace ModbusCommunication.Utils
+namespace ModbusCommon.Utils
 {
-    internal class DbConnection
+    public class DbConnection
     {
         static NpgsqlConnectionStringBuilder _connection;
-        internal static void InitializeDb(DatabaseConfiguration configuration)
+
+        public static void InitializeDb(DatabaseConfiguration configuration)
         {
             _connection = new NpgsqlConnectionStringBuilder
             {
@@ -18,7 +19,7 @@ namespace ModbusCommunication.Utils
             };
         }
 
-        internal static NpgsqlConnectionStringBuilder GetConnectionString()
+        public static NpgsqlConnectionStringBuilder GetConnectionString()
         {
             return _connection;
         }

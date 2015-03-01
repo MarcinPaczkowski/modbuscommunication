@@ -1,4 +1,4 @@
-﻿namespace ModbusCommunication.Models
+﻿namespace ModbusCommon.Models
 {
     public class DatabaseConfiguration
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using ModbusCommon.Utils;
 using ModbusCommunication.Models;
-using ModbusCommunication.Utils;
 using Npgsql;
 
 namespace ModbusCommunication.Repositories
@@ -39,13 +39,13 @@ namespace ModbusCommunication.Repositories
             return gateways;
         }
 
-        internal void InsertGatewayResponse(Gateway gateway)
+        internal void InsertGatewayResponse(Gateway gateway, string response)
         {
             var insertQuery = GetInsertGatewayResponseQuery();
             using (var command = new NpgsqlCommand(insertQuery))
             {
                 command.Parameters.AddWithValue("@GatewayId", gateway.GatewayId);
-                //command.Parameters.AddWithValue("@Resonse", gateway.GatewayId);
+                command.Parameters.AddWithValue("@Response", response);
 
                 command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
                 command.Connection.Open();
@@ -60,7 +60,7 @@ namespace ModbusCommunication.Repositories
             const string query = @"
                 INSERT INTO gatewayrx
                             (id_gateway
-                            ,'time'
+                            ,time
                             ,connectnow
                             ,active
                             ,activenow

@@ -1,7 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using ModbusCommon.Models;
 using ModbusCommunication.Models;
 using ModbusCommunication.Repositories;
+using ModbusExtension.Models;
+using ModbusExtension.Services;
 
 namespace ModbusCommunication.Services
 {
@@ -9,13 +13,13 @@ namespace ModbusCommunication.Services
     {
         private readonly GatewayRepository _gatewayRepository;
         private readonly SensorRepository _sensorRepository;
-        private readonly SerialPortService _serialPortService;
+        private readonly ModbusService _modbusService;
 
         internal GatewayService()
         {
             _gatewayRepository = new GatewayRepository();
             _sensorRepository = new SensorRepository();
-            _serialPortService = new SerialPortService();
+            _modbusService = new ModbusService();
         }
 
         internal List<Gateway> GetGateways()
@@ -28,14 +32,49 @@ namespace ModbusCommunication.Services
             return gateways;
         }
 
+        internal string GetResponse(Gateway gateway)
+        {
+            try
+            {
+                SerialPortToken.Instance.ConnectToSerialPort(gateway.SerialPort);
+                InitializeModbus();
+
+                var registers = _modbusService.GetAllRegisterForSelectedDevice(new Slave
+                {
+                    DeviceNumber = 0,
+                    SlaveId = (byte) gateway.GatewayId
+                });
+
+                var response = String.Empty;
+
+                foreach (var register in registers)
+                    response += String.Format("{0};", register);
+
+                return response;
+            }
+            finally
+            {
+                SerialPortToken.Instance.DisconnectSerialPort();
+            }
+        }
+
         private List<Gateway> GetAvailableGateways(List<Gateway> gateways)
         {
-            var availableSerialPorts = _serialPortService.GetAvailableSerialPorts();
+            var availableSerialPorts = SerialPortToken.Instance.GetAvailableSerialPorts();
 
             foreach (var gateway in gateways)
                 gateway.IsAvailable = availableSerialPorts.Any(p => p.Equals(gateway.SerialPort));
             
             return gateways;
+        }
+
+        private void InitializeModbus()
+        {
+            _modbusService.InitializeModbusRtu(new ModbusConfiguration
+            {
+                SerialPort = SerialPortToken.Instance.GetSerialPort(),
+                TimeOut = 300
+            });
         }
     }
 }

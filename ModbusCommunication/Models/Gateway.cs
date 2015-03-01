@@ -9,6 +9,10 @@ namespace ModbusCommunication.Models
         public int GatewayId { get; set; }
         public string SerialPort { get; set; }
         public bool IsAvailable { get; set; }
+        public int GatewayInterval { get; set; }
+        public int GatewayIntervalCounter { get; set; }
+        public int SensorInterval { get; set; }
+        public int SensorIntervalCounter { get; set; }
         public List<Sensor> Sensors { get; set; }
     }
 }

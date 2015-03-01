@@ -1,12 +1,16 @@
-﻿using System;
-using ModbusCommunication.Utils;
+﻿using ModbusCommon.Utils;
 using Npgsql;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ModbusCommunication.Repositories
+namespace ModbusCommon.Repositories
 {
-    internal class TestConnectionRepository
+    public class TestConnectionRepository
     {
-        internal bool TestConnectionToDatabase()
+        public bool TestConnectionToDatabase()
         {
             var testQuery = GetTestQuery();
 
@@ -26,7 +30,7 @@ namespace ModbusCommunication.Repositories
                 {
                     command.Connection.Close();
                 }
-                
+
             }
             return true;
         }

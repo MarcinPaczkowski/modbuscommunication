@@ -1,5 +1,4 @@
 ﻿using Modbus.Device;
-using ModbusExtension.Enums;
 using ModbusExtension.Models;
 using System.Collections.Generic;
 using System.Linq;

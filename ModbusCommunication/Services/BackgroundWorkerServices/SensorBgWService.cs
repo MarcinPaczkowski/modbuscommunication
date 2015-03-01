@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using ModbusCommon.Models;
 using ModbusCommunication.Models;
 using ModbusCommunication.Repositories;
 using ModbusCommunication.Utils;
@@ -14,7 +15,6 @@ namespace ModbusCommunication.Services.BackgroundWorkerServices
         private readonly SensorService _sensorService;
         private readonly SensorRepository _sensorRepository;
         private readonly ModbusService _modbusService;
-        private readonly SerialPortService _serialPortService;
 
         private Gateway _gateway;
         private string _serialPort;
@@ -25,7 +25,6 @@ namespace ModbusCommunication.Services.BackgroundWorkerServices
             _sensorService = new SensorService();
             _sensorRepository = new SensorRepository();
             _modbusService = new ModbusService();
-            _serialPortService = new SerialPortService();
             
             _sensorWorker.DoWork += _sensorWorker_DoWork;
             _sensorWorker.ProgressChanged += _sensorWorker_ProgressChanged;
@@ -33,41 +32,52 @@ namespace ModbusCommunication.Services.BackgroundWorkerServices
 
             _sensorWorker.WorkerReportsProgress = true;
         }
-        internal void GetSensorStatusAndUpdateOnDb(Gateway gateway, string serialPort)
+        internal void GetSensorStatusAndUpdateOnDb(Gateway gateway)
         {
             _gateway = gateway;
-            _serialPort = serialPort;
+            _serialPort = gateway.SerialPort;
             _sensorWorker.RunWorkerAsync();
         }
 
         private void _sensorWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            _serialPortService.ConnectToSerialPort(_serialPort);
-            InitializeModbus();
-
-            for (var i = 0; i < _gateway.Sensors.Count; i++)
+            try
             {
-                try
+                SerialPortToken.Instance.ConnectToSerialPort(_serialPort);
+                InitializeModbus();
+
+                for (var i = 0; i < _gateway.Sensors.Count; i++)
                 {
-                    _gateway.Sensors[i] = _sensorService.GetSensorStatus(_gateway.Sensors[i], _modbusService);
-                    var previousStatus = _sensorRepository.SelectPreviousSensorStatus(_gateway.Sensors[i], _gateway.ZoneId);
+                    try
+                    {
+                        var isActive = _sensorService.CheckIfSensorIsActive(_gateway.Sensors[i], _modbusService);
 
-                    if (_gateway.Sensors[i].Status == previousStatus)
-                        continue;
+                        if (isActive)
+                            _gateway.Sensors[i] = _sensorService.GetSensorStatus(_gateway.Sensors[i], _modbusService);
+                        else
+                            _gateway.Sensors[i].Status = 99;
 
-                    _sensorRepository.UpdateSensorStatus(_gateway.Sensors[i], _gateway.ZoneId);
+                        var previousStatus = _sensorRepository.SelectPreviousSensorStatus(_gateway.Sensors[i],
+                            _gateway.ZoneId);
 
-                    var message = GetMessage(i);
+                        if (_gateway.Sensors[i].Status == previousStatus)
+                            continue;
 
-                    _sensorWorker.ReportProgress(i, message);
-                }
-                catch (Exception ex)
-                {
-                    ConsoleHelper.AddMessage(ex.Message);
+                        _sensorRepository.UpdateSensorStatus(_gateway.Sensors[i], _gateway.ZoneId);
+
+                        var message = GetMessage(i);
+                        _sensorWorker.ReportProgress(i, message);
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleHelper.AddMessage(ex.Message);
+                    }
                 }
             }
-
-            _serialPortService.DisconnectSerialPort();
+            finally
+            {
+                SerialPortToken.Instance.DisconnectSerialPort();
+            }
         }
 
         private static void _sensorWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -84,17 +94,23 @@ namespace ModbusCommunication.Services.BackgroundWorkerServices
         {
             _modbusService.InitializeModbusRtu(new ModbusConfiguration
             {
-                SerialPort = _serialPortService.SerialPort,
+                SerialPort = SerialPortToken.Instance.GetSerialPort(),
                 TimeOut = 300
             });
         }
 
         private string GetMessage(int index)
         {
-            var message = _gateway.Sensors[index].Status == 1
-                ? String.Format("Gateway {0}, czujnik {1} - ZAJĘTY", _gateway.Sensors[index].GatewayId, _gateway.Sensors[index].Id)
-                : String.Format("Gateway {0}, czujnik {1} - WOLNY", _gateway.Sensors[index].GatewayId, _gateway.Sensors[index].Id);
-            return message;
+            if (_gateway.Sensors[index].Status == 0)
+                return String.Format("Strefa {0}, Gateway {1}, czujnik {2} - WOLNY", _gateway.ZoneName, _gateway.Sensors[index].GatewayId,
+                    _gateway.Sensors[index].Id);
+
+            if (_gateway.Sensors[index].Status == 1)
+                return String.Format("Strefa {0}, Gateway {1}, czujnik {2} - ZAJĘTY", _gateway.ZoneName,
+                    _gateway.Sensors[index].GatewayId, _gateway.Sensors[index].Id);
+
+            return String.Format("Strefa {0}, Gateway {1}, czujnik {2} - NIEKATYWNY", _gateway.ZoneName,
+                    _gateway.Sensors[index].GatewayId, _gateway.Sensors[index].Id);
         }
     }
 }

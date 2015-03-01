@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModbusExtension", "ModbusEx
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModbusTest", "ModbusTest\ModbusTest.csproj", "{1210E4C1-AA27-4987-B5DB-9C4BF157ADB1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModbusSynchronisation", "ModbusSynchronisation\ModbusSynchronisation.csproj", "{0007ABAE-A3B2-478E-B7D0-2558F28EDE0D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModbusCommon", "ModbusCommon\ModbusCommon.csproj", "{AB2B480F-0036-448A-A219-D05208209796}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{1210E4C1-AA27-4987-B5DB-9C4BF157ADB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1210E4C1-AA27-4987-B5DB-9C4BF157ADB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1210E4C1-AA27-4987-B5DB-9C4BF157ADB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0007ABAE-A3B2-478E-B7D0-2558F28EDE0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0007ABAE-A3B2-478E-B7D0-2558F28EDE0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0007ABAE-A3B2-478E-B7D0-2558F28EDE0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0007ABAE-A3B2-478E-B7D0-2558F28EDE0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB2B480F-0036-448A-A219-D05208209796}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB2B480F-0036-448A-A219-D05208209796}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB2B480F-0036-448A-A219-D05208209796}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB2B480F-0036-448A-A219-D05208209796}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

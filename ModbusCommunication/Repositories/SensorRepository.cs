@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using ModbusCommon.Utils;
 using ModbusCommunication.Models;
-using ModbusCommunication.Utils;
 using Npgsql;
 
 namespace ModbusCommunication.Repositories
