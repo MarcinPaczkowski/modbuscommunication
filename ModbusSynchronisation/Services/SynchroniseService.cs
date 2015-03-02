@@ -3,6 +3,7 @@ using ModbusCommon.Models;
 using ModbusExtension.Services;
 using ModbusSynchronisation.Models;
 using ModbusExtension.Models;
+using System.Collections.Generic;
 
 namespace ModbusSynchronisation.Services
 {
@@ -43,17 +44,36 @@ namespace ModbusSynchronisation.Services
             }
         }
 
-        internal ushort GetElectroMagneticFieldValue(Sensor sensor, string serialPort)
+        internal List<ushort> GetAllSensorRegisters(Sensor sensor, string serialPort)
         {
             try
             {
                 SerialPortToken.Instance.ConnectToSerialPort(serialPort);
                 InitializeModbus();
 
-                return _modbusService.GetElectromagneticFieldValue(new Slave
+                return _modbusService.GetAllRegisterForSelectedDevice(new Slave
                 {
                     DeviceNumber = (ushort)sensor.Id,
                     SlaveId = (byte)sensor.GatewayId
+                });
+            }
+            finally
+            {
+                SerialPortToken.Instance.DisconnectSerialPort();
+            }
+        }
+
+        internal List<ushort> GetAllGatewayRegisters(Gateway gateway)
+        {
+            try
+            {
+                SerialPortToken.Instance.ConnectToSerialPort(gateway.SerialPort);
+                InitializeModbus();
+
+                return _modbusService.GetAllRegisterForSelectedDevice(new Slave
+                {
+                    DeviceNumber = 0,
+                    SlaveId = (byte)gateway.GatewayId
                 });
             }
             finally

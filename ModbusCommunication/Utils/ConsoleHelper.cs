@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ModbusCommunication.Utils
@@ -18,7 +14,7 @@ namespace ModbusCommunication.Utils
 
         internal static void AddMessage(string message)
         {
-            _console.Nodes.Add(message);
+            _console.Nodes.Add(String.Format("{0}, {1}", message, DateTime.Now));
         }
 
         internal static void ClearConsole()

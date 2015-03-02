@@ -58,7 +58,7 @@ namespace ModbusCommunication.Services
             }
         }
 
-        private List<Gateway> GetAvailableGateways(List<Gateway> gateways)
+        private static List<Gateway> GetAvailableGateways(List<Gateway> gateways)
         {
             var availableSerialPorts = SerialPortToken.Instance.GetAvailableSerialPorts();
 

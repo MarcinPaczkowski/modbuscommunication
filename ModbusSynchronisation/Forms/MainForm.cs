@@ -23,11 +23,12 @@ namespace ModbusSynchronisation.Forms
             _gateways = new List<Gateway>();
         }
 
-        private void MainForm_Load(object sender, EventArgs e)
+        private void uxStart_Click(object sender, EventArgs e)
         {
             try
             {
                 RefreshLists();
+                uxStart.Text = @"Odśwież";
             }
             catch (Exception ex)
             {
@@ -41,19 +42,6 @@ namespace ModbusSynchronisation.Forms
             Close();
         }
 
-        private void uxRefresh_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                RefreshLists();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, @"Błąd podczas pobierania danych z bazy danych", MessageBoxButtons.OK,
-                    MessageBoxIcon.Error);
-            }
-        }
-
         private void uxGateways_SelectedIndexChanged(object sender, EventArgs e)
         {
             try
@@ -65,8 +53,13 @@ namespace ModbusSynchronisation.Forms
                     if (uxSensors.Items.Count <= 0)
                         return;
                     uxSensors.SelectedIndex = 0;
+                    var allRegisters = _synchroniseService.GetAllGatewayRegisters(selectedGateway);
+
+                    uxAllGatewayRegisters.Text = String.Empty;
+
+                    foreach (var register in allRegisters)
+                        uxAllGatewayRegisters.Text += String.Format("{0} ", register);
                 }
-                
             }
             catch (Exception ex)
             {
@@ -90,11 +83,7 @@ namespace ModbusSynchronisation.Forms
                 lock (SerialPortToken.Instance)
                 {
                     _synchroniseService.SynchroniseSensor(selectedSensor, selectedGateway.SerialPort);
-
-                    var electroMagneticFieldValue = _synchroniseService.GetElectroMagneticFieldValue(selectedSensor,
-                    selectedGateway.SerialPort);
-
-                    uxEMFieldValue.Text = electroMagneticFieldValue.ToString(CultureInfo.InvariantCulture);
+                    GetAllRegisterAndShowResult(selectedSensor, selectedGateway);
                 }
 
                 MessageBox.Show(@"Czujnik został poprawnie zsynchronizowany.", @"Operacja zakończona sukcesem", MessageBoxButtons.OK,
@@ -119,10 +108,19 @@ namespace ModbusSynchronisation.Forms
 
             lock (SerialPortToken.Instance)
             {
-                var electroMagneticFieldValue = _synchroniseService.GetElectroMagneticFieldValue(selectedSensor,
-                selectedGateway.SerialPort);
-                uxEMFieldValue.Text = electroMagneticFieldValue.ToString(CultureInfo.InvariantCulture);
+                GetAllRegisterAndShowResult(selectedSensor, selectedGateway);
             }
+        }
+
+        private void GetAllRegisterAndShowResult(Sensor selectedSensor, Gateway selectedGateway)
+        {
+            var allRegisters = _synchroniseService.GetAllSensorRegisters(selectedSensor, selectedGateway.SerialPort);
+            uxEMFieldValue.Text = allRegisters.First().ToString(CultureInfo.InvariantCulture);
+
+            uxAllSensorRegisters.Text = String.Empty;
+
+            foreach (var register in allRegisters)
+                uxAllSensorRegisters.Text += String.Format("{0} ", register);
         }
 
         private void RefreshLists()

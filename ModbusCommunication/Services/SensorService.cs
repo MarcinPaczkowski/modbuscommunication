@@ -18,11 +18,6 @@ namespace ModbusCommunication.Services
             return sensor;
         }
 
-        internal void CompareSensorStateWithDb(Sensor sensor)
-        {
-            
-        }
-
         internal bool CheckIfSensorIsActive(Sensor sensor, ModbusService modbusService)
         {
             return modbusService.CheckActivityStatusOfDevice(new Slave

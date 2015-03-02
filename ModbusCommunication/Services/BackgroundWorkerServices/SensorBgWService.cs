@@ -55,7 +55,7 @@ namespace ModbusCommunication.Services.BackgroundWorkerServices
                         if (isActive)
                             _gateway.Sensors[i] = _sensorService.GetSensorStatus(_gateway.Sensors[i], _modbusService);
                         else
-                            _gateway.Sensors[i].Status = 99;
+                            _gateway.Sensors[i].Status = 2;
 
                         var previousStatus = _sensorRepository.SelectPreviousSensorStatus(_gateway.Sensors[i],
                             _gateway.ZoneId);
