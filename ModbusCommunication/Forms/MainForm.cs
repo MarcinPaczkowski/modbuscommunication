@@ -76,8 +76,8 @@ namespace ModbusCommunication.Forms
         {
             try
             {
-                GetGateways(); 
                 ConsoleHelper.AddMessage("Start aplikacji.");
+                GetGateways(); 
                 _isRunning = true;
                 SetStartAndStopEnables();
                 StartTimers();
@@ -155,6 +155,8 @@ namespace ModbusCommunication.Forms
                     try
                     {
                         ReloadSerialPortListAndStatus(gateway);
+                        if (!gateway.IsAvailable)
+                            continue;
                         var response = _gatewayService.GetResponse(gateway);
                         _gatewayRepository.InsertGatewayResponse(gateway, response);
                     }
