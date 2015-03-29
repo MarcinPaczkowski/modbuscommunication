@@ -11,8 +11,8 @@ namespace ModbusCommunication.Models
         public bool IsAvailable { get; set; }
         public int GatewayInterval { get; set; }
         public int GatewayIntervalCounter { get; set; }
-        public int SensorInterval { get; set; }
-        public int SensorIntervalCounter { get; set; }
+        public int SensorsInterval { get; set; }
+        public int SensorsIntervalCounter { get; set; }
         public List<Sensor> Sensors { get; set; }
     }
 }

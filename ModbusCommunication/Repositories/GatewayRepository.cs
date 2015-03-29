@@ -28,7 +28,9 @@ namespace ModbusCommunication.Repositories
                             GatewayId = Convert.ToInt32(dr["GatewayId"]),
                             ZoneId = Convert.ToInt32(dr["ZoneId"]),
                             SerialPort = dr["SerialPort"].ToString(),
-                            ZoneName = dr["ZoneName"].ToString()
+                            ZoneName = dr["ZoneName"].ToString(),
+                            GatewayInterval = Convert.ToInt32(dr["GatewayInterval"]),
+                            SensorsInterval = Convert.ToInt32(dr["SensorsInterval"])
                         });
                     }
                 }
@@ -82,6 +84,8 @@ namespace ModbusCommunication.Repositories
                             ,g.id_zone as ZoneId
                             ,g.com as SerialPort
                             ,z.name as ZoneName
+                            ,g.gateway_interval as GatewayInterval
+                            ,g.sensors_interval as SensorsInterval
                     FROM	gateway as g
                     JOIN    zones as z
                     ON      g.id_zone = z.id_zone

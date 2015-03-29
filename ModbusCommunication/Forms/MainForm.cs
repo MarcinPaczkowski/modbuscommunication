@@ -45,12 +45,12 @@ namespace ModbusCommunication.Forms
             {
                 _uxGetGatewaysTimer = new Timer
                 {
-                    Interval = 25000
+                    Interval = Properties.Settings.Default.GatewaysInterval
                 };
 
                 _uxGetSensorStatusTimer = new Timer
                 {
-                    Interval = 10000
+                    Interval = Properties.Settings.Default.SensorsInterval
                 };
 
                 _uxGetSensorStatusTimer.Tick += _uxGetSensorStatusTimer_Tick;
@@ -79,8 +79,8 @@ namespace ModbusCommunication.Forms
                 ConsoleHelper.AddMessage("Start aplikacji.");
                 GetGateways(); 
                 _isRunning = true;
-                SetStartAndStopEnables();
                 StartTimers();
+                SetStartAndStopEnables();
             }
             catch (Exception ex)
             {
@@ -105,7 +105,6 @@ namespace ModbusCommunication.Forms
             }
             catch (Exception ex)
             {
-                StartTimers();
                 ConsoleHelper.AddMessage(ex.Message);
             }
             finally
@@ -116,19 +115,13 @@ namespace ModbusCommunication.Forms
 
         private void _uxGetSensorStatusTimer_Tick(object sender, EventArgs e)
         {
-            _uxGetSensorStatusTimer.Stop();
             foreach (var gateway in _gateways.Where(g => g.IsAvailable))
             {
                 lock (SerialPortToken.Instance)
                 {
                     try
                     {
-                        if (gateway.SensorIntervalCounter <= 0)
-                        {
-                            _sensorBgWService.GetSensorStatusAndUpdateOnDb(gateway);
-                            gateway.SensorIntervalCounter = gateway.SensorInterval;
-                        }
-                        gateway.SensorIntervalCounter--;
+                        _sensorBgWService.GetSensorStatusAndUpdateOnDb(gateway);
                     }
                     catch (Exception ex)
                     {
@@ -137,7 +130,6 @@ namespace ModbusCommunication.Forms
                     }
                 }
             }
-            _uxGetSensorStatusTimer.Start();
         }
 
         private void GetGateways()
