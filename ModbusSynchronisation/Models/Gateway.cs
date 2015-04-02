@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using Microsoft.SqlServer.Server;
 
 namespace ModbusSynchronisation.Models
 {
     public class Gateway
     {
+        public int Id { get; set; }
         public int ZoneId { get; set; }
         public string ZoneName { get; set; }
         public int GatewayId { get; set; }

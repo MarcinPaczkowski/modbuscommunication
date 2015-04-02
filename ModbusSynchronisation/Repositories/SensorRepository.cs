@@ -15,7 +15,7 @@ namespace ModbusSynchronisation.Repositories
 
             using (var command = new NpgsqlCommand(selectQuery))
             {
-                command.Parameters.AddWithValue("@GatewayId", gateway.GatewayId);
+                command.Parameters.AddWithValue("@Id", gateway.Id);
                 command.Parameters.AddWithValue("@ZoneId", gateway.ZoneId);
                 command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
                 command.Connection.Open();
@@ -46,7 +46,7 @@ namespace ModbusSynchronisation.Repositories
                 join    gateway as g
                 on      s.id_gateway = g.id_gateway
                 where   g.active = true
-                and     s.id_gateway = @GatewayId
+                and     s.id_gateway = @Id
                 and     g.id_zone = @ZoneId";
             return query;
         }

@@ -25,6 +25,7 @@ namespace ModbusSynchronisation.Repositories
                     {
                         gateways.Add(new Gateway
                         {
+                            Id = Convert.ToInt32(dr["Id"]),
                             GatewayId = Convert.ToInt32(dr["GatewayId"]),
                             ZoneId = Convert.ToInt32(dr["ZoneId"]),
                             SerialPort = dr["SerialPort"].ToString(),
@@ -42,7 +43,8 @@ namespace ModbusSynchronisation.Repositories
         private static string GetSelectQuery()
         {
             const string query = @"
-                    SELECT 	 g.id_gateway as GatewayId
+                    SELECT 	 g.id_gateway as Id
+                            ,g.com_id_gateway as GatewayId
                             ,g.id_zone as ZoneId
                             ,g.com as SerialPort
                             ,z.name as ZoneName

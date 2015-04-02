@@ -25,12 +25,13 @@ namespace ModbusCommunication.Repositories
                     {
                         gateways.Add(new Gateway
                         {
-                            GatewayId = Convert.ToInt32(dr["GatewayId"]),
+                            Id = Convert.ToInt32(dr["Id"]),
+                            HardwareGatewayId = Convert.ToInt32(dr["HardwareGatewayId"]),
                             ZoneId = Convert.ToInt32(dr["ZoneId"]),
                             SerialPort = dr["SerialPort"].ToString(),
                             ZoneName = dr["ZoneName"].ToString(),
-                            GatewayInterval = Convert.ToInt32(dr["GatewayInterval"]),
-                            SensorsInterval = Convert.ToInt32(dr["SensorsInterval"])
+                            SensorsInterval = Convert.ToInt32(dr["SensorsInterval"]),
+                            SensorsIntervalCounter = 0
                         });
                     }
                 }
@@ -46,7 +47,7 @@ namespace ModbusCommunication.Repositories
             var insertQuery = GetInsertGatewayResponseQuery();
             using (var command = new NpgsqlCommand(insertQuery))
             {
-                command.Parameters.AddWithValue("@GatewayId", gateway.GatewayId);
+                command.Parameters.AddWithValue("@HardwareGatewayId", gateway.HardwareGatewayId);
                 command.Parameters.AddWithValue("@Response", response);
 
                 command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
@@ -68,7 +69,7 @@ namespace ModbusCommunication.Repositories
                             ,activenow
                             ,cmd)
                     VALUES 
-                            (@GatewayId
+                            (@HardwareGatewayId
                             ,NOW()
                             ,1
                             ,1
@@ -80,11 +81,11 @@ namespace ModbusCommunication.Repositories
         private static string GetSelectQuery()
         {
             const string query = @"
-                    SELECT 	 g.id_gateway as GatewayId
+                    SELECT 	 g.id_gateway as Id
+                            ,g.com_id_gateway as HardwareGatewayId
                             ,g.id_zone as ZoneId
                             ,g.com as SerialPort
                             ,z.name as ZoneName
-                            ,g.gateway_interval as GatewayInterval
                             ,g.sensors_interval as SensorsInterval
                     FROM	gateway as g
                     JOIN    zones as z

@@ -7,6 +7,7 @@ namespace ModbusCommunication.Models
         public int Id { get; set; }
         public int GatewayId { get; set; }
         public int Status { get; set; }
+        public bool IsOffline { get; set; }
 
         public override string ToString()
         {

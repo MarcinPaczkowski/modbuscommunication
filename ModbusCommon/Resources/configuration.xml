@@ -5,6 +5,4 @@
   <param name="User">banner</param>
   <param name="Password">ba23&amp;&amp;DF</param>
   <param name="Port">5432</param>
-  <param name="GatewaysInterval">5000</param>
-  <param name="SensorsInterval">11111</param>	
 </configuration>

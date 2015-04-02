@@ -42,7 +42,7 @@ namespace ModbusCommunication.Services
                 var registers = _modbusService.GetAllRegisterForSelectedDevice(new Slave
                 {
                     DeviceNumber = 0,
-                    SlaveId = (byte) gateway.GatewayId
+                    SlaveId = (byte) gateway.HardwareGatewayId
                 });
 
                 var response = String.Empty;

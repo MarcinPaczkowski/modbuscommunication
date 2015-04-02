@@ -22,29 +22,5 @@ namespace ModbusCommunication.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("30000")]
-        public int GatewaysInterval {
-            get {
-                return ((int)(this["GatewaysInterval"]));
-            }
-            set {
-                this["GatewaysInterval"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5000")]
-        public int SensorsInterval {
-            get {
-                return ((int)(this["SensorsInterval"]));
-            }
-            set {
-                this["SensorsInterval"] = value;
-            }
-        }
     }
 }

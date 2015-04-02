@@ -41,6 +41,9 @@
             this.uxIsDb = new System.Windows.Forms.CheckBox();
             this.uxIsCOM = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.uxSensorBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.uxIsProccesing = new System.Windows.Forms.Label();
+            this.uxErrorCounter = new System.Windows.Forms.Button();
             this.uxConsoleGroupBox.SuspendLayout();
             this.uxOperationGroupBox.SuspendLayout();
             this.SuspendLayout();
@@ -63,6 +66,8 @@
             this.uxConsoleGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.uxConsoleGroupBox.Controls.Add(this.uxErrorCounter);
+            this.uxConsoleGroupBox.Controls.Add(this.uxIsProccesing);
             this.uxConsoleGroupBox.Controls.Add(this.uxRefreshConsole);
             this.uxConsoleGroupBox.Controls.Add(this.uxConsoleLog);
             this.uxConsoleGroupBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
@@ -202,6 +207,38 @@
             this.label1.TabIndex = 2;
             this.label1.Text = "Lista dostępnych portów COM";
             // 
+            // uxSensorBackgroundWorker
+            // 
+            this.uxSensorBackgroundWorker.WorkerReportsProgress = true;
+            this.uxSensorBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.uxSensorBackgroundWorker_DoWork);
+            this.uxSensorBackgroundWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.uxSensorBackgroundWorker_ProgressChanged);
+            this.uxSensorBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.uxSensorBackgroundWorker_RunWorkerCompleted);
+            // 
+            // uxIsProccesing
+            // 
+            this.uxIsProccesing.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.uxIsProccesing.AutoSize = true;
+            this.uxIsProccesing.ForeColor = System.Drawing.Color.Red;
+            this.uxIsProccesing.Location = new System.Drawing.Point(275, 513);
+            this.uxIsProccesing.Name = "uxIsProccesing";
+            this.uxIsProccesing.Size = new System.Drawing.Size(215, 18);
+            this.uxIsProccesing.TabIndex = 3;
+            this.uxIsProccesing.Text = "Sprawdzanie stanów czujników";
+            // 
+            // uxErrorCounter
+            // 
+            this.uxErrorCounter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.uxErrorCounter.BackColor = System.Drawing.Color.LimeGreen;
+            this.uxErrorCounter.FlatAppearance.BorderSize = 0;
+            this.uxErrorCounter.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.uxErrorCounter.Location = new System.Drawing.Point(450, 454);
+            this.uxErrorCounter.Name = "uxErrorCounter";
+            this.uxErrorCounter.Size = new System.Drawing.Size(40, 40);
+            this.uxErrorCounter.TabIndex = 4;
+            this.uxErrorCounter.Text = "OK";
+            this.uxErrorCounter.UseVisualStyleBackColor = false;
+            this.uxErrorCounter.Click += new System.EventHandler(this.uxErrorCounter_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -216,6 +253,7 @@
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.uxConsoleGroupBox.ResumeLayout(false);
+            this.uxConsoleGroupBox.PerformLayout();
             this.uxOperationGroupBox.ResumeLayout(false);
             this.uxOperationGroupBox.PerformLayout();
             this.ResumeLayout(false);
@@ -237,6 +275,9 @@
         private System.Windows.Forms.CheckBox uxIsCOM;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListBox uxSerialPortList;
+        private System.ComponentModel.BackgroundWorker uxSensorBackgroundWorker;
+        private System.Windows.Forms.Label uxIsProccesing;
+        private System.Windows.Forms.Button uxErrorCounter;
     }
 }
 

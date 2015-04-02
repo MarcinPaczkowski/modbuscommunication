@@ -1,27 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using ModbusCommon.Models;
 using ModbusCommunication.Models;
 using ModbusCommunication.Repositories;
 using ModbusCommunication.Services;
-using ModbusCommunication.Services.BackgroundWorkerServices;
-using ModbusCommunication.Utils;
+using Npgsql;
 
 namespace ModbusCommunication.Forms
 {
     public partial class MainForm : Form
     {
-        GatewayService _gatewayService;
-        SensorBgWService _sensorBgWService;
-        GatewayRepository _gatewayRepository;
+        private GatewayService _gatewayService;
+        private SensorBgWService _sensorBgWService;
+        private GatewayRepository _gatewayRepository;
 
-        Timer _uxGetSensorStatusTimer;
-        Timer _uxGetGatewaysTimer;
+        private Timer _uxGetSensorStatusTimer;
 
-        List<Gateway> _gateways = new List<Gateway>();
-        bool _isRunning;
+        private List<Gateway> _gateways = new List<Gateway>();
+        private bool _isRunning;
+        private bool _isConnectionToDatabaseFailed;
+        private int _errorCounter;
 
         public MainForm()
         {
@@ -35,101 +38,159 @@ namespace ModbusCommunication.Forms
             _gatewayService = new GatewayService();
             _sensorBgWService = new SensorBgWService();
             _gatewayRepository = new GatewayRepository();
-
-            ConsoleHelper.InitilizeConsole(uxConsoleLog);
         }
 
         private void TimersConfiguration()
         {
             try
             {
-                _uxGetGatewaysTimer = new Timer
-                {
-                    Interval = Properties.Settings.Default.GatewaysInterval
-                };
-
                 _uxGetSensorStatusTimer = new Timer
                 {
-                    Interval = Properties.Settings.Default.SensorsInterval
+                    Interval = 1000
                 };
 
                 _uxGetSensorStatusTimer.Tick += _uxGetSensorStatusTimer_Tick;
-                _uxGetGatewaysTimer.Tick += _uxGetGatewaysTimer_Tick;
             }
             catch (Exception ex)
             {
-                uxConsoleLog.Nodes.Add(ex.Message);
+                IncreaseErrorCounter();
+                DisplayMessage(ex.Message);
             }
+        }
+        private void DisplayMessage(string message)
+        {
+            uxConsoleLog.Nodes.Add(String.Format("{0} - {1}", DateTime.Now, message));
+            uxConsoleLog.Nodes[uxConsoleLog.Nodes.Count - 1].EnsureVisible();
         }
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            
+            uxIsProccesing.Visible = false;
         }
 
         private void uxRefreshConsole_Click(object sender, EventArgs e)
         {
-            ConsoleHelper.ClearConsole();
+            uxConsoleLog.Nodes.Clear();
         }
 
         private void uxStart_Click(object sender, EventArgs e)
         {
             try
             {
-                ConsoleHelper.AddMessage("Start aplikacji.");
-                GetGateways(); 
+                DisplayMessage("Aplikacja rozpoczęła pracę.");
+                StartTimer();
                 _isRunning = true;
-                StartTimers();
                 SetStartAndStopEnables();
+                GetGateways(); 
             }
             catch (Exception ex)
             {
-                ConsoleHelper.AddMessage(ex.Message);
+                IncreaseErrorCounter();
+                DisplayMessage(ex.Message);
             }
         }
 
         private void uxStop_Click(object sender, EventArgs e)
         {
-            ConsoleHelper.AddMessage("Stop aplikacji.");
+            DisplayMessage("Aplikacja zakończyła pracę.");
             _isRunning = false;
             SetStartAndStopEnables();
-            StopTimers();
-        }
-
-        private void _uxGetGatewaysTimer_Tick(object sender, EventArgs e)
-        {
-            try
-            {
-                StopTimers();
-                GetGateways();
-            }
-            catch (Exception ex)
-            {
-                ConsoleHelper.AddMessage(ex.Message);
-            }
-            finally
-            {
-                StartTimers();
-            }
+            StopTimer();
         }
 
         private void _uxGetSensorStatusTimer_Tick(object sender, EventArgs e)
         {
             foreach (var gateway in _gateways.Where(g => g.IsAvailable))
             {
-                lock (SerialPortToken.Instance)
+                try
                 {
-                    try
+                    if (gateway.SensorsIntervalCounter < gateway.SensorsInterval)
+                        gateway.SensorsIntervalCounter++;
+                    else
                     {
-                        _sensorBgWService.GetSensorStatusAndUpdateOnDb(gateway);
-                    }
-                    catch (Exception ex)
-                    {
-                        ConsoleHelper.AddMessage(ex.Message);
-                        SerialPortToken.Instance.DisconnectSerialPort();
+                        lock (SerialPortToken.Instance)
+                        {
+                            SerialPortToken.Instance.ConnectToSerialPort(gateway.SerialPort);
+                            _sensorBgWService.InitializeConnection();
+                            StopTimer();
+                            gateway.SensorsIntervalCounter = 0;
+                            uxIsProccesing.Visible = true;
+                            uxSensorBackgroundWorker.RunWorkerAsync(gateway);
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    SerialPortToken.Instance.DisconnectSerialPort();
+                    uxIsProccesing.Visible = false;
+                    DisplayMessage(ex.Message);
+                    IncreaseErrorCounter();
+                }
             }
+        }
+
+        private void uxSensorBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            var gateway = (Gateway)e.Argument;
+            foreach (var sensor in gateway.Sensors)
+            {
+                try
+                {
+                    var isStatusChanged = _sensorBgWService.IsSensorStatusChanged(gateway, sensor);
+                    if (!isStatusChanged)
+                        continue;
+                    var message = GetMessage(gateway, sensor);
+                    uxSensorBackgroundWorker.ReportProgress(0, message);
+                }
+                catch (Exception ex)
+                {
+                    uxSensorBackgroundWorker.ReportProgress(0, ex);
+                }
+            }
+        }
+
+        private void uxSensorBackgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            var message = e.UserState.ToString();
+            if (message.Contains("NpgsqlException"))
+            {
+                var exceptionMessage = (Exception) e.UserState;
+                if (_isConnectionToDatabaseFailed)
+                    return;
+                _isConnectionToDatabaseFailed = true;
+                DisplayMessage(exceptionMessage.Message);
+                IncreaseErrorCounter();
+                return;
+            }
+
+            if (_isConnectionToDatabaseFailed)
+                DisplayMessage("Przywrócono połączenie z bazą danych.");
+
+            _isConnectionToDatabaseFailed = false;
+            DisplayMessage(message);
+        }
+
+        private void uxSensorBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            SerialPortToken.Instance.DisconnectSerialPort();
+            uxIsProccesing.Visible = false;
+            StartTimer();
+        }
+
+        private void uxErrorCounter_Click(object sender, EventArgs e)
+        {
+            uxErrorCounter.BackColor = Color.LimeGreen;
+            uxErrorCounter.Text = @"OK";
+            _errorCounter = 0;
+            _isConnectionToDatabaseFailed = false;
+        }
+
+        private static string GetMessage(Gateway gateway, Sensor sensor)
+        {
+            var statusMessage = sensor.Status == 0 ? "WOLNY" : "ZAJĘTY";
+            var isOfflineMessage = sensor.IsOffline ? "NIEKATYWNY" : "AKTYWNY";
+            return String.Format("Strefa {0}, Bramka {1}, Czujnik {2} - {3}, {4}",
+                gateway.ZoneName, sensor.GatewayId, sensor.Id, statusMessage, isOfflineMessage);
         }
 
         private void GetGateways()
@@ -152,9 +213,18 @@ namespace ModbusCommunication.Forms
                         var response = _gatewayService.GetResponse(gateway);
                         _gatewayRepository.InsertGatewayResponse(gateway, response);
                     }
+                    catch (NpgsqlException ex)
+                    {
+                        if (_isConnectionToDatabaseFailed)
+                            return;
+                        _isConnectionToDatabaseFailed = true;
+                        IncreaseErrorCounter();
+                        DisplayMessage(ex.Message);
+                    }
                     catch (Exception ex)
                     {
-                        ConsoleHelper.AddMessage(ex.Message);
+                        IncreaseErrorCounter();
+                        DisplayMessage(ex.Message);
                     }
                 }
             }
@@ -166,22 +236,28 @@ namespace ModbusCommunication.Forms
             uxSerialPortStatus.Items.Add(gateway.IsAvailable ? "AKTYWNY" : "NIEAKTYWNY");
         }
 
-        private void StartTimers()
+        private void StartTimer()
         {
-            _uxGetGatewaysTimer.Start();
             _uxGetSensorStatusTimer.Start();
         }
 
-        private void StopTimers()
+        private void StopTimer()
         {
             _uxGetSensorStatusTimer.Stop();
-            _uxGetGatewaysTimer.Stop();
         }
 
         private void SetStartAndStopEnables()
         {
             uxStart.Enabled = !_isRunning;
             uxStop.Enabled = _isRunning;
+        }
+
+        private void IncreaseErrorCounter()
+        {
+            if (_errorCounter <= 0)
+                uxErrorCounter.BackColor = Color.Red;
+            _errorCounter++;
+            uxErrorCounter.Text = _errorCounter.ToString(CultureInfo.InvariantCulture);
         }
     }
 }
