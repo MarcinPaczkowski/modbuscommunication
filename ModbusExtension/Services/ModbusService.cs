@@ -66,7 +66,7 @@ namespace ModbusExtension.Services
         {
             var startAddress = GetStartAddress(slave.DeviceNumber, 7);
             var register = _modbusSerial.ReadHoldingRegisters(slave.SlaveId, startAddress, 1).First();
-            return register == 128;
+            return register >= 128;
         }
 
         public ushort GetRegister(Slave slave, ushort registerAddress)

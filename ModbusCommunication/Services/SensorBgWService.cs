@@ -37,13 +37,12 @@ namespace ModbusCommunication.Services
             else
                 sensor.IsOffline = true;
 
-            var previousSensor = _sensorRepository.SelectPreviousSensorStatus(sensor,
-                gateway.ZoneId, gateway.Id);
+            var previousSensor = _sensorRepository.SelectPreviousSensorStatus(sensor, gateway);
 
             if ((sensor.Status == previousSensor.Status) && (sensor.IsOffline == previousSensor.IsOffline))
                 return false;
 
-            _sensorRepository.UpdateSensorStatus(sensor, gateway.ZoneId, gateway.Id);
+            _sensorRepository.UpdateSensorStatus(sensor, gateway);
             return true;
         }
 

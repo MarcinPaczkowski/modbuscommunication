@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 using ModbusCommon.Utils;
 using ModbusCommunication.Models;
 using Npgsql;
@@ -8,6 +10,7 @@ namespace ModbusCommunication.Repositories
 {
     internal class SensorRepository
     {
+        private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         internal List<Sensor> SelectSensors(Gateway gateway)
         {
             var sensors = new List<Sensor>();
@@ -38,19 +41,23 @@ namespace ModbusCommunication.Repositories
             return sensors;
         }
 
-        internal Sensor SelectPreviousSensorStatus(Sensor sensor, int zoneId, int gatewayId)
+        internal Sensor SelectPreviousSensorStatus(Sensor sensor, Gateway gateway)
         {
             var previousSensor = new Sensor();
             var selectQuery = GetSelectPreviousStatusQuery();
 
             using (var command = new NpgsqlCommand(selectQuery))
             {
-                command.Parameters.AddWithValue("@ZoneId", zoneId);
-                command.Parameters.AddWithValue("@GatewayId", gatewayId);
+                command.Parameters.AddWithValue("@ZoneId", gateway.ZoneId);
+                command.Parameters.AddWithValue("@GatewayId", gateway.Id);
                 command.Parameters.AddWithValue("@SensorId", sensor.Id);
 
                 command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
                 command.Connection.Open();
+
+                var tmpQuery = command.CommandText.Replace("@ZoneId", gateway.ZoneId.ToString()).Replace("@GatewayId", gateway.Id.ToString()).
+                    Replace("@SensorId", sensor.Id.ToString());
+                Log.Info(tmpQuery);
 
                 using (var dr = command.ExecuteReader())
                 {
@@ -67,16 +74,21 @@ namespace ModbusCommunication.Repositories
             return previousSensor;
         }
 
-        internal void UpdateSensorStatus(Sensor sensor, int zoneId, int gatewayId)
+        internal void UpdateSensorStatus(Sensor sensor, Gateway gateway)
         {
             var updateQuery = GetUpdateSensorQuery();
             using (var command = new NpgsqlCommand(updateQuery))
             {
-                command.Parameters.AddWithValue("@GatewayId", gatewayId);
+                command.Parameters.AddWithValue("@GatewayId", gateway.Id);
                 command.Parameters.AddWithValue("@SensorId", sensor.Id);
-                command.Parameters.AddWithValue("@ZoneId", zoneId);
+                command.Parameters.AddWithValue("@ZoneId", gateway.ZoneId);
                 command.Parameters.AddWithValue("@Status", sensor.Status);
                 command.Parameters.AddWithValue("@IsOffline", sensor.IsOffline);
+
+                var tmpQuery = command.CommandText.Replace("@ZoneId", gateway.ZoneId.ToString()).Replace("@GatewayId", gateway.Id.ToString()).
+                    Replace("@SensorId", sensor.Id.ToString()).Replace("@Status", sensor.Status.ToString()).
+                    Replace("@IsOffline", sensor.IsOffline.ToString());
+                Log.Info(tmpQuery);
 
                 command.Connection = new NpgsqlConnection(DbConnection.GetConnectionString());
                 command.Connection.Open();
