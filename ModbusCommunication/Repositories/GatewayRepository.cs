@@ -31,7 +31,7 @@ namespace ModbusCommunication.Repositories
                             SerialPort = dr["SerialPort"].ToString(),
                             ZoneName = dr["ZoneName"].ToString(),
                             SensorsInterval = Convert.ToInt32(dr["SensorsInterval"]),
-                            SensorsIntervalCounter = 0
+                            SensorsIntervalCounter = Convert.ToInt32(dr["SensorsInterval"])
                         });
                     }
                 }

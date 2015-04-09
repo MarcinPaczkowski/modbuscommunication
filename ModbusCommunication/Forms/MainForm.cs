@@ -65,7 +65,20 @@ namespace ModbusCommunication.Forms
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            uxIsProccesing.Visible = false;
+            try
+            {
+                uxIsProccesing.Visible = false;
+                DisplayMessage("Aplikacja rozpoczęła pracę.");
+                _isRunning = true;
+                SetStartAndStopEnables();
+                GetGateways();
+                StartTimer();
+            }
+            catch (Exception ex)
+            {
+                IncreaseErrorCounter();
+                DisplayMessage(ex.Message);
+            }
         }
 
         private void uxRefreshConsole_Click(object sender, EventArgs e)

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using log4net;
+using log4net.Config;
 using ModbusCommon.Utils;
 using ModbusCommunication.Models;
 using Npgsql;
@@ -11,6 +13,12 @@ namespace ModbusCommunication.Repositories
     internal class SensorRepository
     {
         private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        static SensorRepository()
+        {
+            XmlConfigurator.Configure(new FileInfo("Log4net.config"));
+        }
+
         internal List<Sensor> SelectSensors(Gateway gateway)
         {
             var sensors = new List<Sensor>();
