@@ -30,6 +30,8 @@
         {
             this.uxConsoleLog = new System.Windows.Forms.TreeView();
             this.uxConsoleGroupBox = new System.Windows.Forms.GroupBox();
+            this.uxErrorCounter = new System.Windows.Forms.Button();
+            this.uxIsProccesing = new System.Windows.Forms.Label();
             this.uxRefreshConsole = new System.Windows.Forms.Button();
             this.uxOperationGroupBox = new System.Windows.Forms.GroupBox();
             this.uxStart = new System.Windows.Forms.Button();
@@ -37,13 +39,8 @@
             this.uxSerialPortStatus = new System.Windows.Forms.ListBox();
             this.uxSerialPortList = new System.Windows.Forms.ListBox();
             this.uxSettings = new System.Windows.Forms.Button();
-            this.uxIsDead24 = new System.Windows.Forms.CheckBox();
-            this.uxIsDb = new System.Windows.Forms.CheckBox();
-            this.uxIsCOM = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
             this.uxSensorBackgroundWorker = new System.ComponentModel.BackgroundWorker();
-            this.uxIsProccesing = new System.Windows.Forms.Label();
-            this.uxErrorCounter = new System.Windows.Forms.Button();
             this.uxConsoleGroupBox.SuspendLayout();
             this.uxOperationGroupBox.SuspendLayout();
             this.SuspendLayout();
@@ -78,6 +75,31 @@
             this.uxConsoleGroupBox.TabStop = false;
             this.uxConsoleGroupBox.Text = "Konsola";
             // 
+            // uxErrorCounter
+            // 
+            this.uxErrorCounter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.uxErrorCounter.BackColor = System.Drawing.Color.LimeGreen;
+            this.uxErrorCounter.FlatAppearance.BorderSize = 0;
+            this.uxErrorCounter.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.uxErrorCounter.Location = new System.Drawing.Point(450, 454);
+            this.uxErrorCounter.Name = "uxErrorCounter";
+            this.uxErrorCounter.Size = new System.Drawing.Size(40, 40);
+            this.uxErrorCounter.TabIndex = 4;
+            this.uxErrorCounter.Text = "OK";
+            this.uxErrorCounter.UseVisualStyleBackColor = false;
+            this.uxErrorCounter.Click += new System.EventHandler(this.uxErrorCounter_Click);
+            // 
+            // uxIsProccesing
+            // 
+            this.uxIsProccesing.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.uxIsProccesing.AutoSize = true;
+            this.uxIsProccesing.ForeColor = System.Drawing.Color.Red;
+            this.uxIsProccesing.Location = new System.Drawing.Point(275, 513);
+            this.uxIsProccesing.Name = "uxIsProccesing";
+            this.uxIsProccesing.Size = new System.Drawing.Size(215, 18);
+            this.uxIsProccesing.TabIndex = 3;
+            this.uxIsProccesing.Text = "Sprawdzanie stanów czujników";
+            // 
             // uxRefreshConsole
             // 
             this.uxRefreshConsole.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -98,9 +120,6 @@
             this.uxOperationGroupBox.Controls.Add(this.uxSerialPortStatus);
             this.uxOperationGroupBox.Controls.Add(this.uxSerialPortList);
             this.uxOperationGroupBox.Controls.Add(this.uxSettings);
-            this.uxOperationGroupBox.Controls.Add(this.uxIsDead24);
-            this.uxOperationGroupBox.Controls.Add(this.uxIsDb);
-            this.uxOperationGroupBox.Controls.Add(this.uxIsCOM);
             this.uxOperationGroupBox.Controls.Add(this.label1);
             this.uxOperationGroupBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.uxOperationGroupBox.Location = new System.Drawing.Point(521, 12);
@@ -165,39 +184,6 @@
             this.uxSettings.Text = "Wprowadź zmiany";
             this.uxSettings.UseVisualStyleBackColor = true;
             // 
-            // uxIsDead24
-            // 
-            this.uxIsDead24.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.uxIsDead24.AutoSize = true;
-            this.uxIsDead24.Location = new System.Drawing.Point(6, 481);
-            this.uxIsDead24.Name = "uxIsDead24";
-            this.uxIsDead24.Size = new System.Drawing.Size(78, 22);
-            this.uxIsDead24.TabIndex = 5;
-            this.uxIsDead24.Text = "Dead24";
-            this.uxIsDead24.UseVisualStyleBackColor = true;
-            // 
-            // uxIsDb
-            // 
-            this.uxIsDb.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.uxIsDb.AutoSize = true;
-            this.uxIsDb.Location = new System.Drawing.Point(6, 509);
-            this.uxIsDb.Name = "uxIsDb";
-            this.uxIsDb.Size = new System.Drawing.Size(112, 22);
-            this.uxIsDb.TabIndex = 4;
-            this.uxIsDb.Text = "Baza danych";
-            this.uxIsDb.UseVisualStyleBackColor = true;
-            // 
-            // uxIsCOM
-            // 
-            this.uxIsCOM.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.uxIsCOM.AutoSize = true;
-            this.uxIsCOM.Location = new System.Drawing.Point(6, 453);
-            this.uxIsCOM.Name = "uxIsCOM";
-            this.uxIsCOM.Size = new System.Drawing.Size(63, 22);
-            this.uxIsCOM.TabIndex = 3;
-            this.uxIsCOM.Text = "COM";
-            this.uxIsCOM.UseVisualStyleBackColor = true;
-            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -213,31 +199,6 @@
             this.uxSensorBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.uxSensorBackgroundWorker_DoWork);
             this.uxSensorBackgroundWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.uxSensorBackgroundWorker_ProgressChanged);
             this.uxSensorBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.uxSensorBackgroundWorker_RunWorkerCompleted);
-            // 
-            // uxIsProccesing
-            // 
-            this.uxIsProccesing.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.uxIsProccesing.AutoSize = true;
-            this.uxIsProccesing.ForeColor = System.Drawing.Color.Red;
-            this.uxIsProccesing.Location = new System.Drawing.Point(275, 513);
-            this.uxIsProccesing.Name = "uxIsProccesing";
-            this.uxIsProccesing.Size = new System.Drawing.Size(215, 18);
-            this.uxIsProccesing.TabIndex = 3;
-            this.uxIsProccesing.Text = "Sprawdzanie stanów czujników";
-            // 
-            // uxErrorCounter
-            // 
-            this.uxErrorCounter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.uxErrorCounter.BackColor = System.Drawing.Color.LimeGreen;
-            this.uxErrorCounter.FlatAppearance.BorderSize = 0;
-            this.uxErrorCounter.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.uxErrorCounter.Location = new System.Drawing.Point(450, 454);
-            this.uxErrorCounter.Name = "uxErrorCounter";
-            this.uxErrorCounter.Size = new System.Drawing.Size(40, 40);
-            this.uxErrorCounter.TabIndex = 4;
-            this.uxErrorCounter.Text = "OK";
-            this.uxErrorCounter.UseVisualStyleBackColor = false;
-            this.uxErrorCounter.Click += new System.EventHandler(this.uxErrorCounter_Click);
             // 
             // MainForm
             // 
@@ -270,9 +231,6 @@
         private System.Windows.Forms.Button uxStop;
         private System.Windows.Forms.Button uxSettings;
         private System.Windows.Forms.ListBox uxSerialPortStatus;
-        private System.Windows.Forms.CheckBox uxIsDead24;
-        private System.Windows.Forms.CheckBox uxIsDb;
-        private System.Windows.Forms.CheckBox uxIsCOM;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListBox uxSerialPortList;
         private System.ComponentModel.BackgroundWorker uxSensorBackgroundWorker;

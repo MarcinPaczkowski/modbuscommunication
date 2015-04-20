@@ -25,6 +25,7 @@ namespace ModbusCommunication.Forms
         private bool _isRunning;
         private bool _isConnectionToDatabaseFailed;
         private int _errorCounter;
+        //private bool _isSendEmail;
 
         public MainForm()
         {
@@ -57,6 +58,7 @@ namespace ModbusCommunication.Forms
                 DisplayMessage(ex.Message);
             }
         }
+
         private void DisplayMessage(string message)
         {
             uxConsoleLog.Nodes.Add(String.Format("{0} - {1}", DateTime.Now, message));
@@ -132,6 +134,13 @@ namespace ModbusCommunication.Forms
                         }
                     }
                 }
+                //catch (SqlException ex)
+                //{
+                //    if (!_isSendEmail)
+                //    {
+                //        _isSendEmail = true;
+                //    }
+                //}
                 catch (Exception ex)
                 {
                     SerialPortToken.Instance.DisconnectSerialPort();
@@ -150,10 +159,10 @@ namespace ModbusCommunication.Forms
                 try
                 {
                     var isStatusChanged = _sensorBgWService.IsSensorStatusChanged(gateway, sensor);
-                    if (!isStatusChanged)
-                        continue;
-                    var message = GetMessage(gateway, sensor);
+                    var message = GetMessage(gateway, sensor, isStatusChanged);
                     uxSensorBackgroundWorker.ReportProgress(0, message);
+                    var firstAndEightRegister = _sensorBgWService.GetFirstAndEightRegister(sensor);
+                    uxSensorBackgroundWorker.ReportProgress(0, firstAndEightRegister);
                 }
                 catch (Exception ex)
                 {
@@ -198,12 +207,13 @@ namespace ModbusCommunication.Forms
             _isConnectionToDatabaseFailed = false;
         }
 
-        private static string GetMessage(Gateway gateway, Sensor sensor)
+        private static string GetMessage(Gateway gateway, Sensor sensor, bool isStatusChanged)
         {
             var statusMessage = sensor.Status == 0 ? "WOLNY" : "ZAJĘTY";
             var isOfflineMessage = sensor.IsOffline ? "NIEKATYWNY" : "AKTYWNY";
-            return String.Format("Strefa {0}, Bramka {1}, Czujnik {2} - {3}, {4}",
-                gateway.ZoneName, sensor.GatewayId, sensor.Id, statusMessage, isOfflineMessage);
+            var isStatusChangedMessage = isStatusChanged ? "Zmiana" : "Brak zmian";
+            return String.Format("Strefa {0}, Bramka {1}, Czujnik {2} - {3}, {4}, {5}",
+                gateway.ZoneName, sensor.GatewayId, sensor.Id, statusMessage, isOfflineMessage, isStatusChangedMessage);
         }
 
         private void GetGateways()

@@ -46,6 +46,11 @@ namespace ModbusCommunication.Services
             return true;
         }
 
+        internal string GetFirstAndEightRegister(Sensor sensor)
+        {
+            return _sensorService.GetFirstAndEightRegisters(sensor, _modbusService);
+        }
+
         private void InitializeModbus()
         {
             _modbusService.InitializeModbusRtu(new ModbusConfiguration
