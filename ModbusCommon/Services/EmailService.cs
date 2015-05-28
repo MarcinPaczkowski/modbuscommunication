@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows.Forms;
 using System.Net;
 using System.Net.Mail;
 using ModbusCommon.Utils;
@@ -28,9 +27,8 @@ namespace ModbusCommon.Services
             }
             catch (Exception ex)
             {
-                MessageBox.Show(text: ex.Message, caption: @"Błąd podczas wysyłania maila", buttons: MessageBoxButtons.OK, icon: MessageBoxIcon.Error);
+                throw new Exception(ex.Message);
             }
-            
         }
 
         private static MailAddress GetSenderEmailAddress()

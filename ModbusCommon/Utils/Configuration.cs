@@ -33,9 +33,7 @@ namespace ModbusCommon.Utils
             var vBody = new XElement("configuration");
 
             foreach (var item in _configParams)
-            {
                 vBody.Add(new XElement("param", new XAttribute("name", item.Key), item.Value));
-            }
 
             vBody.Save(configFileName);
         }
@@ -63,7 +61,7 @@ namespace ModbusCommon.Utils
         {
             if (_configParams.ContainsKey(paramName))
                 return _configParams[paramName];
-            throw new Exception(String.Format("{0} {1} {2}",
+            throw new Exception(string.Format("{0} {1} {2}",
                 "Brak parametru", paramName, "w pliku konfiguracyjnym"));
         }
 

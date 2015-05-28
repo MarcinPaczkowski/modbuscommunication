@@ -1,5 +1,4 @@
-﻿using System;
-using ModbusCommunication.Models;
+﻿using ModbusCommunication.Models;
 using ModbusExtension.Models;
 using ModbusExtension.Services;
 
@@ -35,7 +34,7 @@ namespace ModbusCommunication.Services
                 DeviceNumber = (ushort)sensor.Id,
                 SlaveId = (byte)sensor.GatewayId
             });
-            return String.Format("Rejestr 1 - {0}, rejestr 8 - {1}", registers[0], registers[7]);
+            return string.Format("Rejestr 1 - {0}, rejestr 8 - {1}", registers[0], registers[7]);
         }
     }
 }

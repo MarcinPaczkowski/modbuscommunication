@@ -5,4 +5,11 @@
   <param name="User">banner</param>
   <param name="Password">ba23&amp;&amp;DF</param>
   <param name="Port">5432</param>
+  <param name="SenderEmailPassword">Hasło</param>
+  <param name="SenderEmailAddress">np. adresEmailNadawcy@gmail.com</param>
+  <param name="SenderEmailName">UżytkownikNadawca</param>
+  <param name="ReceiverEmailAddress">np. adresEmailOdbiorcy@gmail.com</param>
+  <param name="ReceiverEmailName">UżytkownikOdbiorca</param>
+  <param name="EmailHost">np. smtp.gmail.com</param>
+  <param name="EmailPort">np. 587</param>
 </configuration>

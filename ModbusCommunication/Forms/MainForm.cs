@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using ModbusCommon.Models;
+using ModbusCommon.Services;
 using ModbusCommunication.Models;
 using ModbusCommunication.Repositories;
 using ModbusCommunication.Services;
@@ -18,6 +19,7 @@ namespace ModbusCommunication.Forms
         private GatewayService _gatewayService;
         private SensorBgWService _sensorBgWService;
         private GatewayRepository _gatewayRepository;
+        private EmailService _emailService;
 
         private Timer _uxGetSensorStatusTimer;
 
@@ -25,7 +27,7 @@ namespace ModbusCommunication.Forms
         private bool _isRunning;
         private bool _isConnectionToDatabaseFailed;
         private int _errorCounter;
-        //private bool _isSendEmail;
+        private bool _isSendEmail;
 
         public MainForm()
         {
@@ -39,6 +41,7 @@ namespace ModbusCommunication.Forms
             _gatewayService = new GatewayService();
             _sensorBgWService = new SensorBgWService();
             _gatewayRepository = new GatewayRepository();
+            _emailService = new EmailService();
         }
 
         private void TimersConfiguration()
@@ -61,7 +64,7 @@ namespace ModbusCommunication.Forms
 
         private void DisplayMessage(string message)
         {
-            uxConsoleLog.Nodes.Add(String.Format("{0} - {1}", DateTime.Now, message));
+            uxConsoleLog.Nodes.Add(string.Format("{0} - {1}", DateTime.Now, message));
             uxConsoleLog.Nodes[uxConsoleLog.Nodes.Count - 1].EnsureVisible();
         }
 
@@ -75,6 +78,23 @@ namespace ModbusCommunication.Forms
                 SetStartAndStopEnables();
                 GetGateways();
                 StartTimer();
+            }
+            catch (NpgsqlException ex)
+            {
+                if (!_isSendEmail)
+                {
+                    try
+                    {
+                        IncreaseErrorCounter();
+                        DisplayMessage(ex.Message);
+                        _emailService.SendEmail("Błąd połączenia z bazą danych", ex.Message);
+                        _isSendEmail = true;
+                    }
+                    catch (Exception innerEx)
+                    {
+                        DisplayMessage(innerEx.Message);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -98,6 +118,23 @@ namespace ModbusCommunication.Forms
                 SetStartAndStopEnables();
                 GetGateways(); 
             }
+            catch (NpgsqlException ex)
+            {
+                if (!_isSendEmail)
+                {
+                    try
+                    {
+                        IncreaseErrorCounter();
+                        DisplayMessage(ex.Message);
+                        _emailService.SendEmail("Błąd połączenia z bazą danych", ex.Message);
+                        _isSendEmail = true;
+                    }
+                    catch (Exception innerEx)
+                    {
+                        DisplayMessage(innerEx.Message);
+                    }
+                }
+            }
             catch (Exception ex)
             {
                 IncreaseErrorCounter();
@@ -109,9 +146,122 @@ namespace ModbusCommunication.Forms
         {
             DisplayMessage("Aplikacja zakończyła pracę.");
             _isRunning = false;
+            _isSendEmail = false;
             SetStartAndStopEnables();
             StopTimer();
         }
+
+        //private void _uxGetSensorStatusTimer_Tick(object sender, EventArgs e)
+        //{
+        //    foreach (var gateway in _gateways.Where(g => g.IsAvailable))
+        //    {
+        //        try
+        //        {
+        //            if (gateway.SensorsIntervalCounter < gateway.SensorsInterval)
+        //                gateway.SensorsIntervalCounter++;
+        //            else
+        //            {
+        //                lock (SerialPortToken.Instance)
+        //                {
+        //                    SerialPortToken.Instance.ConnectToSerialPort(gateway.SerialPort);
+        //                    _sensorBgWService.InitializeConnection();
+        //                    StopTimer();
+        //                    gateway.SensorsIntervalCounter = 0;
+        //                    uxIsProccesing.Visible = true;
+        //                    uxSensorBackgroundWorker.RunWorkerAsync(gateway);
+        //                }
+        //            }
+        //        }
+        //        catch (NpgsqlException ex)
+        //        {
+        //            if (_isSendEmail) 
+        //                continue;
+        //            try
+        //            {
+        //                IncreaseErrorCounter();
+        //                DisplayMessage(ex.Message);
+        //                _emailService.SendEmail("Błąd połączenia z bazą danych", ex.Message);
+        //                _isSendEmail = true;
+        //            }
+        //            catch (Exception innerEx)
+        //            {
+        //                DisplayMessage(innerEx.Message);
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            SerialPortToken.Instance.DisconnectSerialPort();
+        //            uxIsProccesing.Visible = false;
+        //            DisplayMessage(ex.Message);
+        //            IncreaseErrorCounter();
+        //        }
+        //    }
+        //}
+
+        //private void uxSensorBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        //{
+        //    var gateway = (Gateway)e.Argument;
+        //    foreach (var sensor in gateway.Sensors)
+        //    {
+        //        try
+        //        {
+        //            var isStatusChanged = _sensorBgWService.IsSensorStatusChanged(gateway, sensor);
+        //            var message = GetMessage(gateway, sensor, isStatusChanged);
+        //            uxSensorBackgroundWorker.ReportProgress(0, message);
+        //            var firstAndEightRegister = _sensorBgWService.GetFirstAndEightRegister(sensor);
+        //            uxSensorBackgroundWorker.ReportProgress(0, firstAndEightRegister);
+        //        }
+        //        catch (NpgsqlException ex)
+        //        {
+        //            uxSensorBackgroundWorker.ReportProgress(0, ex);
+        //            if (_isSendEmail)
+        //                continue;
+        //            try
+        //            {
+        //                IncreaseErrorCounter();
+        //                DisplayMessage(ex.Message);
+        //                _emailService.SendEmail("Błąd połączenia z bazą danych", ex.Message);
+        //                _isSendEmail = true;
+        //            }
+        //            catch (Exception innerEx)
+        //            {
+        //                DisplayMessage(innerEx.Message);
+        //            }
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            uxSensorBackgroundWorker.ReportProgress(0, ex);
+        //        }
+        //    }
+        //}
+
+        //private void uxSensorBackgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        //{
+        //    var message = e.UserState.ToString();
+        //    if (message.Contains("NpgsqlException"))
+        //    {
+        //        var exceptionMessage = (Exception) e.UserState;
+        //        if (_isConnectionToDatabaseFailed)
+        //            return;
+        //        _isConnectionToDatabaseFailed = true;
+        //        DisplayMessage(exceptionMessage.Message);
+        //        IncreaseErrorCounter();
+        //        return;
+        //    }
+
+        //    if (_isConnectionToDatabaseFailed)
+        //        DisplayMessage("Przywrócono połączenie z bazą danych.");
+
+        //    _isConnectionToDatabaseFailed = false;
+        //    DisplayMessage(message);
+        //}
+
+        //private void uxSensorBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        //{
+        //    SerialPortToken.Instance.DisconnectSerialPort();
+        //    uxIsProccesing.Visible = false;
+        //    StartTimer();
+        //}
 
         private void _uxGetSensorStatusTimer_Tick(object sender, EventArgs e)
         {
@@ -134,13 +284,22 @@ namespace ModbusCommunication.Forms
                         }
                     }
                 }
-                //catch (SqlException ex)
-                //{
-                //    if (!_isSendEmail)
-                //    {
-                //        _isSendEmail = true;
-                //    }
-                //}
+                catch (NpgsqlException ex)
+                {
+                    if (_isSendEmail)
+                        continue;
+                    try
+                    {
+                        IncreaseErrorCounter();
+                        DisplayMessage(ex.Message);
+                        _emailService.SendEmail("Błąd połączenia z bazą danych", ex.Message);
+                        _isSendEmail = true;
+                    }
+                    catch (Exception innerEx)
+                    {
+                        DisplayMessage(innerEx.Message);
+                    }
+                }
                 catch (Exception ex)
                 {
                     SerialPortToken.Instance.DisconnectSerialPort();
@@ -164,6 +323,23 @@ namespace ModbusCommunication.Forms
                     var firstAndEightRegister = _sensorBgWService.GetFirstAndEightRegister(sensor);
                     uxSensorBackgroundWorker.ReportProgress(0, firstAndEightRegister);
                 }
+                catch (NpgsqlException ex)
+                {
+                    uxSensorBackgroundWorker.ReportProgress(0, ex);
+                    if (_isSendEmail)
+                        continue;
+                    try
+                    {
+                        IncreaseErrorCounter();
+                        DisplayMessage(ex.Message);
+                        _emailService.SendEmail("Błąd połączenia z bazą danych", ex.Message);
+                        _isSendEmail = true;
+                    }
+                    catch (Exception innerEx)
+                    {
+                        DisplayMessage(innerEx.Message);
+                    }
+                }
                 catch (Exception ex)
                 {
                     uxSensorBackgroundWorker.ReportProgress(0, ex);
@@ -176,7 +352,7 @@ namespace ModbusCommunication.Forms
             var message = e.UserState.ToString();
             if (message.Contains("NpgsqlException"))
             {
-                var exceptionMessage = (Exception) e.UserState;
+                var exceptionMessage = (Exception)e.UserState;
                 if (_isConnectionToDatabaseFailed)
                     return;
                 _isConnectionToDatabaseFailed = true;
@@ -204,6 +380,7 @@ namespace ModbusCommunication.Forms
             uxErrorCounter.BackColor = Color.LimeGreen;
             uxErrorCounter.Text = @"OK";
             _errorCounter = 0;
+            _isSendEmail = false;
             _isConnectionToDatabaseFailed = false;
         }
 
@@ -212,7 +389,7 @@ namespace ModbusCommunication.Forms
             var statusMessage = sensor.Status == 0 ? "WOLNY" : "ZAJĘTY";
             var isOfflineMessage = sensor.IsOffline ? "NIEKATYWNY" : "AKTYWNY";
             var isStatusChangedMessage = isStatusChanged ? "Zmiana" : "Brak zmian";
-            return String.Format("Strefa {0}, Bramka {1}, Czujnik {2} - {3}, {4}, {5}",
+            return string.Format("Strefa {0}, Bramka {1}, Czujnik {2} - {3}, {4}, {5}",
                 gateway.ZoneName, sensor.GatewayId, sensor.Id, statusMessage, isOfflineMessage, isStatusChangedMessage);
         }
 
@@ -238,11 +415,19 @@ namespace ModbusCommunication.Forms
                     }
                     catch (NpgsqlException ex)
                     {
-                        if (_isConnectionToDatabaseFailed)
-                            return;
-                        _isConnectionToDatabaseFailed = true;
-                        IncreaseErrorCounter();
-                        DisplayMessage(ex.Message);
+                        if (_isSendEmail) 
+                            continue;
+                        try
+                        {
+                            IncreaseErrorCounter();
+                            DisplayMessage(ex.Message);
+                            _emailService.SendEmail("Błąd połączenia z bazą danych", ex.Message);
+                            _isSendEmail = true;
+                        }
+                        catch (Exception innerEx)
+                        {
+                            DisplayMessage(innerEx.Message);
+                        }
                     }
                     catch (Exception ex)
                     {
