@@ -39,6 +39,8 @@ namespace ModbusCommunication.Repositories
                         {
                             Id = Convert.ToInt32(dr["SensorId"]),
                             GatewayId = gateway.HardwareGatewayId,
+                            ConnectionError = Convert.ToInt32(dr["ConnectionError"]),
+                            ConnectionErrorCounter = Convert.ToInt32(dr["ConnectionError"])
                         });
                     }
                 }
@@ -109,7 +111,8 @@ namespace ModbusCommunication.Repositories
         private static string GetSelectQuery()
         {
             const string query = @"
-                select 	s.id_sensor as SensorId
+                select 	s.id_sensor as SensorId,
+                        g.connection_error as ConnectionError
                 from    sensors as s
                 join    gateway as g
                 on      s.id_gateway = g.id_gateway

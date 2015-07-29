@@ -4,6 +4,8 @@ using ModbusExtension.Services;
 using ModbusSynchronisation.Models;
 using ModbusExtension.Models;
 using System.Collections.Generic;
+using ModbusCommon.Utils;
+using ModbusExtension.Enums;
 
 namespace ModbusSynchronisation.Services
 {
@@ -23,11 +25,13 @@ namespace ModbusSynchronisation.Services
                 SerialPortToken.Instance.ConnectToSerialPort(serialPort);
                 InitializeModbus();
 
+                var activeMode = GetActiveMode();
+
                 var isActive = _modbusService.CheckActivityStatusOfDevice(new Slave
                 {
                     DeviceNumber = (ushort) sensor.Id,
                     SlaveId = (byte) sensor.GatewayId
-                });
+                }, activeMode);
 
                 if (!isActive)
                     throw new Exception("Wybrany czujnik jest niedostępny.");
@@ -89,6 +93,17 @@ namespace ModbusSynchronisation.Services
                 SerialPort = SerialPortToken.Instance.GetSerialPort(),
                 TimeOut = 300
             });
+        }
+
+        private static ActiveMode GetActiveMode()
+        {
+            var activeModeString = Configuration.Instance.GetValue("ActiveSensorMode");
+
+            if (activeModeString.ToUpper().Equals("EQUAL"))
+                return ActiveMode.Equal;
+            if (activeModeString.ToUpper().Equals("EQUALORGREATER"))
+                return ActiveMode.EqualOrGreater;
+            return ActiveMode.Greater;
         }
     }
 }

@@ -12,4 +12,5 @@
   <param name="ReceiverEmailName">UżytkownikOdbiorca</param>
   <param name="EmailHost">np. smtp.gmail.com</param>
   <param name="EmailPort">np. 587</param>
+  <param name="ActiveSensorMode">Equal</param>
 </configuration>

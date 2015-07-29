@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ModbusCommunication.Models
+﻿namespace ModbusCommunication.Models
 {
     public class Sensor
     {
@@ -8,10 +6,12 @@ namespace ModbusCommunication.Models
         public int GatewayId { get; set; }
         public int Status { get; set; }
         public bool IsOffline { get; set; }
+        public int ConnectionError { get; set; }
+        public int ConnectionErrorCounter { get; set; }
 
         public override string ToString()
         {
-            return String.Format("Gateway {0} Sensor {1} Status {2}", GatewayId, Id, Status);
+            return string.Format("Gateway {0} Sensor {1} Status {2}", GatewayId, Id, Status);
         }
     }
 }

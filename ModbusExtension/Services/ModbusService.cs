@@ -2,6 +2,7 @@
 using ModbusExtension.Models;
 using System.Collections.Generic;
 using System.Linq;
+using ModbusExtension.Enums;
 
 namespace ModbusExtension.Services
 {    
@@ -62,11 +63,21 @@ namespace ModbusExtension.Services
             return deviceStatusDictionary;
         }
 
-        public bool CheckActivityStatusOfDevice(Slave slave)
+        public bool CheckActivityStatusOfDevice(Slave slave, ActiveMode mode)
         {
             var startAddress = GetStartAddress(slave.DeviceNumber, 7);
             var register = _modbusSerial.ReadHoldingRegisters(slave.SlaveId, startAddress, 1).First();
-            return register >= 128;
+            switch (mode)
+            {
+                case ActiveMode.Equal:
+                    return register == 128;
+                case ActiveMode.EqualOrGreater:
+                    return register >= 128;
+                case ActiveMode.Greater:
+                    return register > 128;
+                default:
+                    return register == 128;
+            }
         }
 
         public ushort GetRegister(Slave slave, ushort registerAddress)

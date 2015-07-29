@@ -51,6 +51,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enums\ActiveMode.cs" />
     <Compile Include="Enums\BaselineFilter.cs" />
     <Compile Include="Enums\LowPassFilter.cs" />
     <Compile Include="Enums\ReportRate.cs" />

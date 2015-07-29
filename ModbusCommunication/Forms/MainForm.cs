@@ -28,6 +28,7 @@ namespace ModbusCommunication.Forms
         private bool _isConnectionToDatabaseFailed;
         private int _errorCounter;
         private bool _isSendEmail;
+        private bool _isBackgroundWorkerRun;
 
         public MainForm()
         {
@@ -151,168 +152,80 @@ namespace ModbusCommunication.Forms
             StopTimer();
         }
 
-        //private void _uxGetSensorStatusTimer_Tick(object sender, EventArgs e)
-        //{
-        //    foreach (var gateway in _gateways.Where(g => g.IsAvailable))
-        //    {
-        //        try
-        //        {
-        //            if (gateway.SensorsIntervalCounter < gateway.SensorsInterval)
-        //                gateway.SensorsIntervalCounter++;
-        //            else
-        //            {
-        //                lock (SerialPortToken.Instance)
-        //                {
-        //                    SerialPortToken.Instance.ConnectToSerialPort(gateway.SerialPort);
-        //                    _sensorBgWService.InitializeConnection();
-        //                    StopTimer();
-        //                    gateway.SensorsIntervalCounter = 0;
-        //                    uxIsProccesing.Visible = true;
-        //                    uxSensorBackgroundWorker.RunWorkerAsync(gateway);
-        //                }
-        //            }
-        //        }
-        //        catch (NpgsqlException ex)
-        //        {
-        //            if (_isSendEmail) 
-        //                continue;
-        //            try
-        //            {
-        //                IncreaseErrorCounter();
-        //                DisplayMessage(ex.Message);
-        //                _emailService.SendEmail("Błąd połączenia z bazą danych", ex.Message);
-        //                _isSendEmail = true;
-        //            }
-        //            catch (Exception innerEx)
-        //            {
-        //                DisplayMessage(innerEx.Message);
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            SerialPortToken.Instance.DisconnectSerialPort();
-        //            uxIsProccesing.Visible = false;
-        //            DisplayMessage(ex.Message);
-        //            IncreaseErrorCounter();
-        //        }
-        //    }
-        //}
-
-        //private void uxSensorBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
-        //{
-        //    var gateway = (Gateway)e.Argument;
-        //    foreach (var sensor in gateway.Sensors)
-        //    {
-        //        try
-        //        {
-        //            var isStatusChanged = _sensorBgWService.IsSensorStatusChanged(gateway, sensor);
-        //            var message = GetMessage(gateway, sensor, isStatusChanged);
-        //            uxSensorBackgroundWorker.ReportProgress(0, message);
-        //            var firstAndEightRegister = _sensorBgWService.GetFirstAndEightRegister(sensor);
-        //            uxSensorBackgroundWorker.ReportProgress(0, firstAndEightRegister);
-        //        }
-        //        catch (NpgsqlException ex)
-        //        {
-        //            uxSensorBackgroundWorker.ReportProgress(0, ex);
-        //            if (_isSendEmail)
-        //                continue;
-        //            try
-        //            {
-        //                IncreaseErrorCounter();
-        //                DisplayMessage(ex.Message);
-        //                _emailService.SendEmail("Błąd połączenia z bazą danych", ex.Message);
-        //                _isSendEmail = true;
-        //            }
-        //            catch (Exception innerEx)
-        //            {
-        //                DisplayMessage(innerEx.Message);
-        //            }
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            uxSensorBackgroundWorker.ReportProgress(0, ex);
-        //        }
-        //    }
-        //}
-
-        //private void uxSensorBackgroundWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        //{
-        //    var message = e.UserState.ToString();
-        //    if (message.Contains("NpgsqlException"))
-        //    {
-        //        var exceptionMessage = (Exception) e.UserState;
-        //        if (_isConnectionToDatabaseFailed)
-        //            return;
-        //        _isConnectionToDatabaseFailed = true;
-        //        DisplayMessage(exceptionMessage.Message);
-        //        IncreaseErrorCounter();
-        //        return;
-        //    }
-
-        //    if (_isConnectionToDatabaseFailed)
-        //        DisplayMessage("Przywrócono połączenie z bazą danych.");
-
-        //    _isConnectionToDatabaseFailed = false;
-        //    DisplayMessage(message);
-        //}
-
-        //private void uxSensorBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        //{
-        //    SerialPortToken.Instance.DisconnectSerialPort();
-        //    uxIsProccesing.Visible = false;
-        //    StartTimer();
-        //}
-
         private void _uxGetSensorStatusTimer_Tick(object sender, EventArgs e)
         {
-            foreach (var gateway in _gateways.Where(g => g.IsAvailable))
-            {
-                try
-                {
-                    if (gateway.SensorsIntervalCounter < gateway.SensorsInterval)
-                        gateway.SensorsIntervalCounter++;
-                    else
-                    {
-                        lock (SerialPortToken.Instance)
-                        {
-                            SerialPortToken.Instance.ConnectToSerialPort(gateway.SerialPort);
-                            _sensorBgWService.InitializeConnection();
-                            StopTimer();
-                            gateway.SensorsIntervalCounter = 0;
-                            uxIsProccesing.Visible = true;
-                            uxSensorBackgroundWorker.RunWorkerAsync(gateway);
-                        }
-                    }
-                }
-                catch (NpgsqlException ex)
-                {
-                    if (_isSendEmail)
-                        continue;
-                    try
-                    {
-                        IncreaseErrorCounter();
-                        DisplayMessage(ex.Message);
-                        _emailService.SendEmail("Błąd połączenia z bazą danych", ex.Message);
-                        _isSendEmail = true;
-                    }
-                    catch (Exception innerEx)
-                    {
-                        DisplayMessage(innerEx.Message);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SerialPortToken.Instance.DisconnectSerialPort();
-                    uxIsProccesing.Visible = false;
-                    DisplayMessage(ex.Message);
-                    IncreaseErrorCounter();
-                }
-            }
+            if (_isBackgroundWorkerRun)
+                return;
+            _isBackgroundWorkerRun = true;
+            var availableGateways = _gateways.Where(g => g.IsAvailable).ToList();
+            uxSensorBackgroundWorker.RunWorkerAsync(availableGateways);
         }
 
         private void uxSensorBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
         {
-            var gateway = (Gateway)e.Argument;
+            try
+            {
+                var gateways = (List<Gateway>) e.Argument;
+                foreach (var gateway in gateways)
+                {
+                    try
+                    {
+                        if (gateway.SensorsIntervalCounter < gateway.SensorsInterval)
+                            gateway.SensorsIntervalCounter++;
+                        else
+                        {
+                            lock (SerialPortToken.Instance)
+                            {
+                                SerialPortToken.Instance.ConnectToSerialPort(gateway.SerialPort);
+                                _sensorBgWService.InitializeConnection();
+                                StopTimer();
+                                gateway.SensorsIntervalCounter = 0;
+                                uxIsProccesing.Visible = true;
+                                ProcessSensors(gateway);
+                            }
+                        }
+                    }
+                    catch (NpgsqlException ex)
+                    {
+                        if (_isSendEmail)
+                            continue;
+                        try
+                        {
+                            IncreaseErrorCounter();
+                            uxSensorBackgroundWorker.ReportProgress(0, ex.Message);
+                            _emailService.SendEmail("Błąd połączenia z bazą danych", ex.Message);
+                            _isSendEmail = true;
+                        }
+                        catch (Exception innerEx)
+                        {
+                            uxSensorBackgroundWorker.ReportProgress(0, innerEx.Message);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SerialPortToken.Instance.DisconnectSerialPort();
+                        uxSensorBackgroundWorker.ReportProgress(0, ex.Message);
+                        IncreaseErrorCounter();
+                    }
+                    finally
+                    {
+                        uxIsProccesing.Visible = false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SerialPortToken.Instance.DisconnectSerialPort();
+                uxSensorBackgroundWorker.ReportProgress(0, ex.Message);
+            }
+            finally
+            {
+                _isBackgroundWorkerRun = false;
+            }
+        }
+
+        private void ProcessSensors(Gateway gateway)
+        {
             foreach (var sensor in gateway.Sensors)
             {
                 try
@@ -389,12 +302,14 @@ namespace ModbusCommunication.Forms
             var statusMessage = sensor.Status == 0 ? "WOLNY" : "ZAJĘTY";
             var isOfflineMessage = sensor.IsOffline ? "NIEKATYWNY" : "AKTYWNY";
             var isStatusChangedMessage = isStatusChanged ? "Zmiana" : "Brak zmian";
-            return string.Format("Strefa {0}, Bramka {1}, Czujnik {2} - {3}, {4}, {5}",
-                gateway.ZoneName, sensor.GatewayId, sensor.Id, statusMessage, isOfflineMessage, isStatusChangedMessage);
+            return string.Format("Strefa {0}, Bramka {1}, Czujnik {2} - {3}, Licznik prób - {4}, {5}, {6}",
+                gateway.ZoneName, sensor.GatewayId, sensor.Id, statusMessage, sensor.ConnectionErrorCounter, 
+                isOfflineMessage, isStatusChangedMessage);
         }
 
         private void GetGateways()
         {
+            DisplayMessage("Pobranie gatewayow");
             uxSerialPortList.Items.Clear();
             uxSerialPortStatus.Items.Clear();
             _gateways.Clear();
