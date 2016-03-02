@@ -46,6 +46,7 @@ namespace ModbusSynchronisation.Repositories
                 join    gateway as g
                 on      s.id_gateway = g.id_gateway
                 where   g.active = true
+                and     s.active = true
                 and     s.id_gateway = @Id
                 and     g.id_zone = @ZoneId";
             return query;

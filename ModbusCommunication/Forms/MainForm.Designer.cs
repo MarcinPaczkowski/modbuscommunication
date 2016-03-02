@@ -183,6 +183,7 @@
             this.uxSettings.TabIndex = 7;
             this.uxSettings.Text = "Wprowadź zmiany";
             this.uxSettings.UseVisualStyleBackColor = true;
+            this.uxSettings.Click += new System.EventHandler(this.uxSettings_Click);
             // 
             // label1
             // 

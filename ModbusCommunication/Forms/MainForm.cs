@@ -300,7 +300,7 @@ namespace ModbusCommunication.Forms
         private static string GetMessage(Gateway gateway, Sensor sensor, bool isStatusChanged)
         {
             var statusMessage = sensor.Status == 0 ? "WOLNY" : "ZAJĘTY";
-            var isOfflineMessage = sensor.IsOffline ? "NIEKATYWNY" : "AKTYWNY";
+            var isOfflineMessage = sensor.IsOffline ? "Offline" : "Online";
             var isStatusChangedMessage = isStatusChanged ? "Zmiana" : "Brak zmian";
             return string.Format("Strefa {0}, Bramka {1}, Czujnik {2} - {3}, Licznik prób - {4}, {5}, {6}",
                 gateway.ZoneName, sensor.GatewayId, sensor.Id, statusMessage, sensor.ConnectionErrorCounter, 
@@ -381,6 +381,11 @@ namespace ModbusCommunication.Forms
                 uxErrorCounter.BackColor = Color.Red;
             _errorCounter++;
             uxErrorCounter.Text = _errorCounter.ToString(CultureInfo.InvariantCulture);
+        }
+
+        private void uxSettings_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -34,12 +34,14 @@ namespace ModbusCommunication.Services
                 sensor.ConnectionErrorCounter = sensor.ConnectionError;
                 sensor.IsOffline = false;
             }
-
             else
             {
                 sensor.ConnectionErrorCounter--;
                 if (sensor.ConnectionErrorCounter <= 0)
+                {
                     sensor.IsOffline = true;
+                    sensor.Status = 1;
+                }
             }
 
             var previousSensor = _sensorRepository.SelectPreviousSensorStatus(sensor, gateway);
